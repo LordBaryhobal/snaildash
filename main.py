@@ -39,7 +39,9 @@ class Manager:
         self.game.player = self.game.players[1]
         self.sh.join(code)
     
-    def quit(self):
+    def quit(self, send=False):
+        if send:
+            self.sh.send(b"quit")
         self.sh.running = False
         self.sh.socket.close()
         self.stage = Stage.STOP
@@ -57,11 +59,11 @@ class Manager:
     def handle_events(self, events):
         for event in events:
             if event.type == pygame.QUIT:
-                self.quit()
+                self.quit(True)
             
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_0 and event.mod & pygame.KMOD_CTRL:
-                    self.stage = Stage.STOP
+                    self.quit(True)
                 
                 if self.stage == Stage.IN_GAME:
                     self.game.handle_key(event)
@@ -100,10 +102,10 @@ class Manager:
     
     def render_waiting(self, surf):
         t = time.time()
-        dots = int(t)%3
+        dots = int(t)%4
         txt = "En attente de l'adversaire ..."
         size = self.font.size(txt)
-        txt = self.font.render(txt[:len(txt)-2+dots], True, (255,255,255))
+        txt = self.font.render(txt[:len(txt)-3+dots], True, (255,255,255))
         surf.fill(0)
         surf.blit(txt, [surf.get_width()/2-size[0]/2, surf.get_height()/2-size[1]/2])
     
@@ -112,10 +114,15 @@ class Manager:
         if send:
             self.sh.send(b"start")
         self.stage = Stage.IN_GAME
+        self.game.start_time = time.time()
         self.game.start_turn()
     
     def on_receive(self, data: bytes):
         data = data.decode("utf-8")
+        if data == "quit":
+            self.quit()
+            return
+
         if self.stage == Stage.WAITING_OPPONENT:
             if data == "ready":
                 self.play(True)

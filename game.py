@@ -7,7 +7,8 @@ from player import Player
 class Game:
     WIDTH = 20
     HEIGHT = 20
-    TIMER = 5
+    TIMER = 1.5
+    DURATION = 120
 
     def __init__(self, manager):
         self.manager = manager
@@ -19,9 +20,13 @@ class Game:
         self.turn = 0
         self.font = pygame.font.SysFont("arial", 30)
         self.player = self.players[0]
-        self.timer_start = time.time()
+        self.timer_start = 0
+        self.start_time = 0
         self.moved = False
     
+    def cur_player(self):
+        return self.players[self.turn]
+
     def loop(self):
         self.remaining = self.timer_start+self.TIMER - time.time()
         
@@ -51,6 +56,20 @@ class Game:
         txt = self.font.render(f"{max(0,self.remaining):.2f}", True, col)
         x = 0 if self.player.i == self.turn else surf.get_width()-txt.get_width()
         surf.blit(txt, [x, 0])
+        
+        remaining = self.start_time+self.DURATION - time.time()
+        W = surf.get_width()
+        w = W*remaining/self.DURATION
+        pygame.draw.rect(surf, (255,255,255), [0, surf.get_height()-10, w, 10])
+        
+        red = np.count_nonzero(self.trails == 0)
+        blue = np.count_nonzero(self.trails == 1)
+        full = self.WIDTH * self.HEIGHT
+        redW = W*red/full
+        blueW = W*blue/full
+        pygame.draw.rect(surf, (180,180,180), [0, 0, W, 10])
+        pygame.draw.rect(surf, Player.COLORS[0], [0, 0, redW, 10])
+        pygame.draw.rect(surf, Player.COLORS[1], [W-blueW, 0, blueW, 10])
     
     def handle_key(self, event):
         if self.turn == self.player.i and not self.player.stunned:
@@ -75,13 +94,14 @@ class Game:
         self.timer_start = time.time()
         self.moved = False
         
-        if self.player.i == self.turn:
-            if self.player.stunned:
-                if time.time() >= self.player.stun_start+Player.STUN_TIMER:
-                    self.player.stunned = False
-                    self.player.stun_start = 0
-                else:
-                    self.end_turn()
+        #if self.player.i == self.turn:
+        cur = self.cur_player()
+        if cur.stunned:
+            if time.time() >= cur.stun_start+Player.STUN_TIMER:
+                cur.stunned = False
+                cur.stun_start = 0
+            elif cur is self.player:
+                self.end_turn()
     
     def end_turn(self):
         if self.player.i == self.turn:
