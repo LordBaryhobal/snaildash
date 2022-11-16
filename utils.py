@@ -9,6 +9,7 @@ def toBase(n, base=10):
     return toBase(n//base, base) + abc[n%base]
 
 def fromBase(s, base=10):
+    s = s.upper()
     if len(s) == 1:
         return abc.index(s)
     
