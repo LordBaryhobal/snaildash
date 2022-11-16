@@ -59,5 +59,5 @@ class SocketHandler:
             data = self.socket.recv(2048)
             if not data:
                 break
-            print(f"received: {data}")
+            #print(f"received: {data}")
             self.on_receive(data)
