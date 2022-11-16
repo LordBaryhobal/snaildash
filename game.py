@@ -5,9 +5,9 @@ import time
 from player import Player
 
 class Game:
-    WIDTH = 20
-    HEIGHT = 20
-    TIMER = 1.5
+    WIDTH = 10
+    HEIGHT = 10
+    TIMER = 0.25
     DURATION = 120
 
     def __init__(self, manager):
@@ -17,21 +17,21 @@ class Game:
             Player(self, 0, 0, 0),
             Player(self, 1, self.WIDTH-1, self.HEIGHT-1)
         ]
-        self.turn = 0
         self.font = pygame.font.SysFont("arial", 30)
         self.player = self.players[0]
         self.timer_start = 0
         self.start_time = 0
-        self.moved = False
-    
-    def cur_player(self):
-        return self.players[self.turn]
+        self.trail_changes = []
+        self.remaining = 0
 
     def loop(self):
         self.remaining = self.timer_start+self.TIMER - time.time()
         
         if self.remaining <= 0:
-            self.end_turn()
+            if not self.player.synced:
+                if not self.manager.is_host:
+                    self.player.synced = True
+                    self.end_turn()
     
     def render(self, surf):
         self.ts = min(surf.get_width()/self.WIDTH, surf.get_height()/self.HEIGHT)
@@ -45,17 +45,20 @@ class Game:
 
                     pygame.draw.circle(surf, col, [(x+0.5)*self.ts, (y+0.5)*self.ts], self.ts/4)
         
+        r = 1-max(0,self.remaining)/self.TIMER
         for player in self.players:
-            pygame.draw.circle(surf, Player.COLORS[player.i], [(player.x+0.5)*self.ts, (player.y+0.5)*self.ts], self.ts/2)
-            if player.stunned:
-                pygame.draw.line(surf, (0,255,0), [player.x*self.ts, player.y*self.ts], [(player.x+1)*self.ts, (player.y+1)*self.ts])
-                pygame.draw.line(surf, (0,255,0), [player.x*self.ts, (player.y+1)*self.ts], [(player.x+1)*self.ts, player.y*self.ts])
+            x, y = player.x, player.y
+            lx, ly = player.lx, player.ly
+            X, Y = lx+(x-lx)*r, ly+(y-ly)*r
+            
+            pygame.draw.circle(surf, Player.COLORS[player.i], [(X+0.5)*self.ts, (Y+0.5)*self.ts], self.ts/2)
+            if player.stun_count != 0:
+                pygame.draw.line(surf, (0,255,0), [X*self.ts, Y*self.ts], [(X+1)*self.ts, (Y+1)*self.ts])
+                pygame.draw.line(surf, (0,255,0), [X*self.ts, (Y+1)*self.ts], [(X+1)*self.ts, Y*self.ts])
 
 
-        col = (255,255,255) if self.player.i == self.turn else (150,150,150)
-        txt = self.font.render(f"{max(0,self.remaining):.2f}", True, col)
-        x = 0 if self.player.i == self.turn else surf.get_width()-txt.get_width()
-        surf.blit(txt, [x, 0])
+        """txt = self.font.render(f"{max(0,self.remaining):.2f}", True, (255,255,255))
+        surf.blit(txt, [0, 0])"""
         
         remaining = self.start_time+self.DURATION - time.time()
         W = surf.get_width()
@@ -72,84 +75,90 @@ class Game:
         pygame.draw.rect(surf, Player.COLORS[1], [W-blueW, 0, blueW, 10])
     
     def handle_key(self, event):
-        if self.turn == self.player.i and not self.player.stunned:
-            x, y = self.player.x, self.player.y
-            if event.key == pygame.K_w:
-                if y > 0:
-                    self.player.move(0, -1)
-            
-            elif event.key == pygame.K_s:
-                if y < self.HEIGHT-1:
-                    self.player.move(0, 1)
-            
-            elif event.key == pygame.K_a:
-                if x > 0:
-                    self.player.move(-1, 0)
-            
-            elif event.key == pygame.K_d:
-                if x < self.WIDTH-1:
-                    self.player.move(1, 0)
+        if event.key == pygame.K_w:
+            self.player.dir = 3
+        
+        elif event.key == pygame.K_s:
+            self.player.dir = 1
+        
+        elif event.key == pygame.K_a:
+            self.player.dir = 2
+        
+        elif event.key == pygame.K_d:
+            self.player.dir = 0
     
     def start_turn(self):
         self.timer_start = time.time()
-        self.moved = False
-        
-        #if self.player.i == self.turn:
-        cur = self.cur_player()
-        if cur.stunned:
-            if time.time() >= cur.stun_start+Player.STUN_TIMER:
-                cur.stunned = False
-                cur.stun_start = 0
-            elif cur is self.player:
-                self.end_turn()
+        self.player.synced = False
+        self.trail_changes = []
     
     def end_turn(self):
-        if self.player.i == self.turn:
-            if not self.moved and not self.player.stunned:
-                self.player.stunned = True
-                self.player.stun_start = time.time()
-            
-            if self.trails[self.player.y, self.player.x] == 1-self.player.i:
-                self.player.hurt()
-            
+        if self.manager.is_host:
+            for player in self.players:
+                player.synced = False
+                if player.stun_count != 0:
+                    player.stun_count -= 1
+                
+                else:
+                    dx, dy = Player.OFFSETS[player.dir]
+                    x, y = player.x, player.y
+                    x2, y2 = x+dx, y+dy
+                    x2 = max(0, min(self.WIDTH-1, x2))
+                    y2 = max(0, min(self.HEIGHT-1, y2))
+                    player.lx, player.ly = x, y
+                    player.x, player.y = x2, y2
+                    
+                    self.trail_changes.append((x, y, player.i))
+
+            for x, y, i in self.trail_changes:
+                self.trails[y, x] = i
+        
             self.send_sync()
-        
-        self.turn = 1-self.turn
-        
-        self.start_turn()
+            self.start_turn()
+            
+        else:
+            self.send_sync()
     
-    def sync(self, x1, y1, x2, y2, s1, s2, s1s, s2s, trails):
-        self.players[0].x = x1
-        self.players[0].y = y1
-        self.players[1].x = x2
-        self.players[1].y = y2
-        self.players[0].stunned = s1
-        self.players[1].stunned = s2
-        self.players[0].stun_start = s1s
-        self.players[1].stun_start = s2s
+    def sync(self, x1, y1, d1, s1, x2, y2, d2, s2, trails=None):
+        if self.player.i == 1 or not self.manager.is_host:
+            self.players[0].lx = self.players[0].x
+            self.players[0].ly = self.players[0].y
+            self.players[0].x = x1
+            self.players[0].y = y1
+            self.players[0].dir = d1
+            self.players[0].stun_count = s1
         
-        for y in range(self.HEIGHT):
-            for x in range(self.WIDTH):
-                c = int(trails[x+y*self.WIDTH])
-                if c == 2: c = -1
-                self.trails[y, x] = c
+        if self.player.i == 0 or not self.manager.is_host:
+            self.players[1].lx = self.players[1].x
+            self.players[1].ly = self.players[1].y
+            self.players[1].x = x2
+            self.players[1].y = y2
+            self.players[1].dir = d2
+            self.players[1].stun_count = s2
+        
+        if trails:
+            for x, y, i in trails:
+                self.trails[y, x] = i
                 
     def send_sync(self):
         x1 = self.players[0].x
         y1 = self.players[0].y
+        d1 = self.players[0].dir
+        s1 = int(self.players[0].stun_count)
         x2 = self.players[1].x
         y2 = self.players[1].y
-        s1 = int(self.players[0].stunned)
-        s2 = int(self.players[1].stunned)
-        s1s = self.players[0].stun_start
-        s2s = self.players[1].stun_start
+        d2 = self.players[1].dir
+        s2 = int(self.players[1].stun_count)
         
-        trails = ""
-        for y in range(self.HEIGHT):
-            for x in range(self.WIDTH):
-                c = self.trails[y, x]
-                if c == -1: c = 2
-                trails += str(c)
+        if self.manager.is_host:
+            trails = []
+            for x, y, i in self.trail_changes:
+                trails.append(f"{x}|{y}|{i}")
+            
+            trails = "/".join(trails)
+            msg = f"turnEndHost,{x1},{y1},{d1},{s1},{x2},{y2},{d2},{s2},{trails}"
+            
+        else:
+            msg = f"turnEnd,{x1},{y1},{d1},{s1},{x2},{y2},{d2},{s2}"
         
-        msg = f"turnEnd,{x1},{y1},{x2},{y2},{s1},{s2},{s1s},{s2s},{trails}"
         self.manager.sh.send(msg.encode("utf-8"))

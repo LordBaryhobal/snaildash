@@ -22,6 +22,7 @@ class Manager:
         self.game = Game(self)
         self.play_btn_rect = [0,0,0,0]
         self.play_btn_pressed = False
+        self.is_host = False
         
         print(f"The code for this machine is: {self.sh.get_code()}")
         code = input("Code of the other machine (leave empty to host): ")
@@ -32,6 +33,7 @@ class Manager:
             self.join(code)
     
     def host(self):
+        self.is_host = True
         self.game.player = self.game.players[0]
         self.sh.host()
     
@@ -132,12 +134,23 @@ class Manager:
         
         elif self.stage == Stage.IN_GAME:
             if data.startswith("turnEnd"):
-                _, x1, y1, x2, y2, s1, s2, s1s, s2s, trails = data.split(",")
-                x1, y1, x2, y2 = map(int, [x1, y1, x2, y2])
-                s1, s2 = map(bool, map(int, [s1, s2]))
-                s1s, s2s = map(float, [s1s, s2s])
-                self.game.sync(x1, y1, x2, y2, s1, s2, s1s, s2s, trails)
-                self.game.end_turn()
+                if data.startswith("turnEndHost"):
+                    _, x1, y1, d1, s1, x2, y2, d2, s2, trails = data.split(",")
+                    trails = trails.split("/")
+                    trails = list(map(lambda t: tuple(map(int, t.split("|"))), trails))
+                
+                else:
+                    _, x1, y1, d1, s1, x2, y2, d2, s2 = data.split(",")
+                    trails = None
+                
+                x1, y1, d1, s1, x2, y2, d2, s2 = map(int, [x1, y1, d1, s1, x2, y2, d2, s2])
+                
+                self.game.sync(x1, y1, d1, s1, x2, y2, d2, s2, trails)
+                if self.is_host:
+                    self.game.end_turn()
+                
+                else:
+                    self.game.start_turn()
 
 if __name__ == "__main__":
     pygame.init()
