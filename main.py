@@ -68,13 +68,11 @@ class Manager:
             txt = self.cd_font.render(rem, True, (133, 255, 255))
             y0 = surf.get_height()/2-txt.get_height()/2
             y1 = -txt.get_height()
-            print(r, end=" ")
             r = 1 - (r - round(r))
             r = max(0, 2.5*(r-0.6))
             #r = max(0, 5*r-4)
             r = r**2
             y = r*(y1-y0)+y0
-            print(r)
 
             surf.blit(txt, [surf.get_width()/2-txt.get_width()/2, y])
         
@@ -189,7 +187,7 @@ class Manager:
 
 if __name__ == "__main__":
     pygame.init()
-    win = pygame.display.set_mode([WIDTH, HEIGHT])
+    win = pygame.display.set_mode([WIDTH, HEIGHT], pygame.RESIZABLE)
     pygame.display.set_caption("Snaildash")
     clock = pygame.time.Clock()
     

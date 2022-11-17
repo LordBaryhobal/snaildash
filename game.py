@@ -70,8 +70,9 @@ class Game:
         
         remaining = self.start_time+self.DURATION - time.time()
         W = 2*w3
+        w6 = w3/2
         w = W*remaining/self.DURATION
-        pygame.draw.rect(surf, (255,255,255), [0, surf.get_height()-10, w, 10])
+        pygame.draw.rect(surf, (255,255,255), [w6, surf.get_height()-10, w, 10])
         
         red = np.count_nonzero(self.trails == 0)
         blue = np.count_nonzero(self.trails == 1)
@@ -79,11 +80,10 @@ class Game:
         redW = W*red/full
         blueW = W*blue/full
         
-        h6 = h3/2
         h24 = h3/8
-        pygame.draw.rect(surf, (180,180,180), [h6, h24, W, h24*2])
-        pygame.draw.rect(surf, Player.COLORS[0], [h6, h24, redW, h24*2])
-        pygame.draw.rect(surf, Player.COLORS[1], [h6+W-blueW, h24, blueW, h24*2])
+        pygame.draw.rect(surf, (180,180,180), [w6, h24, W, h24*2])
+        pygame.draw.rect(surf, Player.COLORS[0], [w6, h24, redW, h24*2])
+        pygame.draw.rect(surf, Player.COLORS[1], [w6+W-blueW, h24, blueW, h24*2])
     
     def handle_key(self, event):
         if event.key == pygame.K_w:
