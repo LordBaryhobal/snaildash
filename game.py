@@ -22,7 +22,7 @@ class Game:
         self.timer_start = 0
         self.start_time = 0
         self.trail_changes = []
-        self.remaining = 0
+        self.remaining = self.TIMER
 
     def loop(self):
         self.remaining = self.timer_start+self.TIMER - time.time()
@@ -34,8 +34,15 @@ class Game:
                     self.end_turn()
     
     def render(self, surf):
-        self.ts = min(surf.get_width()/self.WIDTH, surf.get_height()/self.HEIGHT)
+        #self.ts = min(surf.get_width()/self.WIDTH, surf.get_height()/self.HEIGHT)
+        w3, h3 = surf.get_width()/3, surf.get_height()/3
+        
+        tw = 2*w3/self.WIDTH
+        th = 2*h3/self.HEIGHT
+        self.ts = min(tw, th)
         surf.fill(0)
+        
+        ox, oy = surf.get_width()/2 - self.WIDTH/2*self.ts, surf.get_height()/2 - self.HEIGHT/2*self.ts
 
         for y in range(self.HEIGHT):
             for x in range(self.WIDTH):
@@ -43,25 +50,26 @@ class Game:
                 if t != -1:
                     col = Player.TRAIL_COLORS[t]
 
-                    pygame.draw.circle(surf, col, [(x+0.5)*self.ts, (y+0.5)*self.ts], self.ts/4)
+                    pygame.draw.circle(surf, col, [ox+(x+0.5)*self.ts, oy+(y+0.5)*self.ts], self.ts/4)
         
         r = 1-max(0,self.remaining)/self.TIMER
+        r = max(0, min(1, r))
         for player in self.players:
             x, y = player.x, player.y
             lx, ly = player.lx, player.ly
             X, Y = lx+(x-lx)*r, ly+(y-ly)*r
             
-            pygame.draw.circle(surf, Player.COLORS[player.i], [(X+0.5)*self.ts, (Y+0.5)*self.ts], self.ts/2)
+            pygame.draw.circle(surf, Player.COLORS[player.i], [ox+(X+0.5)*self.ts, oy+(Y+0.5)*self.ts], self.ts/2)
             if player.stun_count != 0:
-                pygame.draw.line(surf, (0,255,0), [X*self.ts, Y*self.ts], [(X+1)*self.ts, (Y+1)*self.ts])
-                pygame.draw.line(surf, (0,255,0), [X*self.ts, (Y+1)*self.ts], [(X+1)*self.ts, Y*self.ts])
+                pygame.draw.line(surf, (0,255,0), [ox+X*self.ts, oy+Y*self.ts], [ox+(X+1)*self.ts, oy+(Y+1)*self.ts])
+                pygame.draw.line(surf, (0,255,0), [ox+X*self.ts, oy+(Y+1)*self.ts], [ox+(X+1)*self.ts, oy+Y*self.ts])
 
 
         """txt = self.font.render(f"{max(0,self.remaining):.2f}", True, (255,255,255))
         surf.blit(txt, [0, 0])"""
         
         remaining = self.start_time+self.DURATION - time.time()
-        W = surf.get_width()
+        W = 2*w3
         w = W*remaining/self.DURATION
         pygame.draw.rect(surf, (255,255,255), [0, surf.get_height()-10, w, 10])
         
@@ -70,9 +78,12 @@ class Game:
         full = self.WIDTH * self.HEIGHT
         redW = W*red/full
         blueW = W*blue/full
-        pygame.draw.rect(surf, (180,180,180), [0, 0, W, 10])
-        pygame.draw.rect(surf, Player.COLORS[0], [0, 0, redW, 10])
-        pygame.draw.rect(surf, Player.COLORS[1], [W-blueW, 0, blueW, 10])
+        
+        h6 = h3/2
+        h24 = h3/8
+        pygame.draw.rect(surf, (180,180,180), [h6, h24, W, h24*2])
+        pygame.draw.rect(surf, Player.COLORS[0], [h6, h24, redW, h24*2])
+        pygame.draw.rect(surf, Player.COLORS[1], [h6+W-blueW, h24, blueW, h24*2])
     
     def handle_key(self, event):
         if event.key == pygame.K_w:

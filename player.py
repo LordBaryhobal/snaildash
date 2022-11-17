@@ -13,5 +13,5 @@ class Player:
         self.y = y
         self.lx, self.ly = x, y
         self.stun_count = 0
-        self.dir = 0  # 0, 1, 2, 3 -> right, down, left, up
+        self.dir = i*2  # 0, 1, 2, 3 -> right, down, left, up
         self.synced = False

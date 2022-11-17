@@ -2,6 +2,7 @@ import pygame
 from game import Game
 from socket_handler import SocketHandler
 import time
+from math import floor
 
 WIDTH, HEIGHT = 600, 600
 
@@ -14,15 +15,19 @@ class Stage:
     BREAKDOWN = 4
 
 class Manager:
+    COUNTDOWN = 4
+
     def __init__(self):
         self.stage = Stage.MAIN_MENU
         self.logo = pygame.image.load("snaildash.png")
         self.font = pygame.font.SysFont("arial", 30)
+        self.cd_font = pygame.font.SysFont("arial", 50, bold=True, italic=True)
         self.sh = SocketHandler(self.on_receive)
         self.game = Game(self)
         self.play_btn_rect = [0,0,0,0]
         self.play_btn_pressed = False
         self.is_host = False
+        self.countdown_start = 0
         
         print(f"The code for this machine is: {self.sh.get_code()}")
         code = input("Code of the other machine (leave empty to host): ")
@@ -54,6 +59,24 @@ class Manager:
         
         elif self.stage == Stage.WAITING_OPPONENT:
             self.render_waiting(surf)
+        
+        elif self.stage == Stage.COUNTDOWN:
+            r = max(0, self.countdown_start+self.COUNTDOWN - time.time())
+            rem = round(r)
+            self.game.render(surf)
+            rem = "Go" if rem == 0 else str(rem)
+            txt = self.cd_font.render(rem, True, (133, 255, 255))
+            y0 = surf.get_height()/2-txt.get_height()/2
+            y1 = -txt.get_height()
+            print(r, end=" ")
+            r = 1 - (r - round(r))
+            r = max(0, 2.5*(r-0.6))
+            #r = max(0, 5*r-4)
+            r = r**2
+            y = r*(y1-y0)+y0
+            print(r)
+
+            surf.blit(txt, [surf.get_width()/2-txt.get_width()/2, y])
         
         elif self.stage == Stage.IN_GAME:
             self.game.render(surf)
@@ -89,7 +112,14 @@ class Manager:
                                 self.sh.send(b"ready")
                                 self.stage = Stage.WAITING_OPPONENT
         
-        if self.stage == Stage.IN_GAME:
+        if self.stage == Stage.COUNTDOWN:
+            rem = self.countdown_start+self.COUNTDOWN-time.time()
+            if rem <= 0:
+                self.stage = Stage.IN_GAME
+                self.game.start_time = time.time()
+                self.game.start_turn()
+
+        elif self.stage == Stage.IN_GAME:
             self.game.loop()
 
     def render_menu(self, surf):
@@ -115,9 +145,14 @@ class Manager:
         print(f"play, send={send}")
         if send:
             self.sh.send(b"start")
+        
+        """
         self.stage = Stage.IN_GAME
         self.game.start_time = time.time()
         self.game.start_turn()
+        """
+        self.countdown_start = time.time()
+        self.stage = Stage.COUNTDOWN
     
     def on_receive(self, data: bytes):
         data = data.decode("utf-8")
