@@ -179,15 +179,16 @@ class Game:
                     y2 = max(0, min(self.HEIGHT-1, y2))
                     #player.lx, player.ly = x, y
                     
-                    p2 = self.players[1-player.i]
-                    if p2.x == x2 and p2.y == y2:
-                        self.collide()
-                        break
-                    
                     player.nx, player.ny = x2, y2
                     if self.trails[y, x] != player.i:
                         self.trail_changes.append((x, y, player.i))
 
+            p1, p2 = self.players
+            if (p1.nx == p2.nx and p1.ny == p2.ny) or (p1.x == p2.nx and p1.y == p2.ny and p2.x == p1.nx and p2.y == p1.ny):
+                p1.nx, p1.ny = p1.x, p1.y
+                p2.nx, p2.ny = p2.x, p2.y
+                self.collide()
+            
             for x, y, i in self.trail_changes:
                 self.trails[y, x] = -1 if i == 2 else i
                 self.drool[y, x] = random.randint(0,15)
@@ -256,8 +257,9 @@ class Game:
     
     def collide(self):
         p1, p2 = self.players
-        p1.dir = (p1.dir+2)%4
-        p2.dir = (p2.dir+2)%4
+        for p in self.players:
+            if not (p.dir == 0 and p.x == self.WIDTH-1) and not (p.dir == 1 and p.y == self.HEIGHT-1) and not (p.dir == 2 and p.x == 0) and not (p.dir == 3 and p.y== 0):
+                p.dir = (p.dir+2)%4
         
         ox, oy = (p1.x+p2.x)/2, (p1.y+p2.y)/2
         
