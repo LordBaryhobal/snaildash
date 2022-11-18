@@ -160,6 +160,9 @@ class Game:
         self.timer_start = time.time()
         self.player.synced = False
         self.trail_changes = []
+        for player in self.players:
+            player.lx, player.ly = player.x, player.y
+            player.x, player.y = player.nx, player.ny
     
     def end_turn(self):
         if self.manager.is_host:
@@ -174,14 +177,14 @@ class Game:
                     x2, y2 = x+dx, y+dy
                     x2 = max(0, min(self.WIDTH-1, x2))
                     y2 = max(0, min(self.HEIGHT-1, y2))
-                    player.lx, player.ly = x, y
+                    #player.lx, player.ly = x, y
                     
                     p2 = self.players[1-player.i]
                     if p2.x == x2 and p2.y == y2:
                         self.collide()
                         break
                     
-                    player.x, player.y = x2, y2
+                    player.nx, player.ny = x2, y2
                     if self.trails[y, x] != player.i:
                         self.trail_changes.append((x, y, player.i))
 
@@ -190,7 +193,8 @@ class Game:
                 self.drool[y, x] = random.randint(0,15)
         
             self.send_sync()
-            self.start_turn()
+            #self.start_turn()
+            pygame.event.post(pygame.event.Event(pygame.USEREVENT))
             
         else:
             self.send_sync()
@@ -199,16 +203,16 @@ class Game:
         if self.player.i == 1 or not self.manager.is_host:
             self.players[0].lx = self.players[0].x
             self.players[0].ly = self.players[0].y
-            self.players[0].x = x1
-            self.players[0].y = y1
+            self.players[0].nx = x1
+            self.players[0].ny = y1
             self.players[0].dir = d1
             self.players[0].stun_count = s1
         
         if self.player.i == 0 or not self.manager.is_host:
             self.players[1].lx = self.players[1].x
             self.players[1].ly = self.players[1].y
-            self.players[1].x = x2
-            self.players[1].y = y2
+            self.players[1].nx = x2
+            self.players[1].ny = y2
             self.players[1].dir = d2
             self.players[1].stun_count = s2
         
@@ -221,12 +225,12 @@ class Game:
             self.collide_pos = [col_x, col_y]
                 
     def send_sync(self):
-        x1 = self.players[0].x
-        y1 = self.players[0].y
+        x1 = self.players[0].nx
+        y1 = self.players[0].ny
         d1 = self.players[0].dir
         s1 = int(self.players[0].stun_count)
-        x2 = self.players[1].x
-        y2 = self.players[1].y
+        x2 = self.players[1].nx
+        y2 = self.players[1].ny
         d2 = self.players[1].dir
         s2 = int(self.players[1].stun_count)
         

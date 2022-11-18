@@ -110,6 +110,9 @@ class Manager:
                                 self.play_btn_pressed = False
                                 self.sh.send(b"ready")
                                 self.stage = Stage.WAITING_OPPONENT
+            
+            elif event.type == pygame.USEREVENT:
+                self.game.start_turn()
         
         if self.stage == Stage.COUNTDOWN:
             rem = self.countdown_start+self.COUNTDOWN-time.time()
@@ -196,7 +199,8 @@ class Manager:
                     self.game.end_turn()
                 
                 else:
-                    self.game.start_turn()
+                    pygame.event.post(pygame.event.Event(pygame.USEREVENT))
+                    #self.game.start_turn()
 
 if __name__ == "__main__":
     pygame.init()
