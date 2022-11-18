@@ -3,6 +3,7 @@ import pygame
 import time
 from math import floor, ceil
 import struct
+import random
 
 from player import Player
 
@@ -30,6 +31,14 @@ class Game:
         self.trail_changes = []
         self.remaining = self.TIMER
 
+        self.drool = np.zeros([self.HEIGHT, self.WIDTH], dtype="int8")-1
+        """self.drool_textures = []
+        for i in range(16):
+            texture = pygame.image.load(f"assets/textures/drool/{i}.png")
+            self.drool_textures.append(texture)"""
+        
+        self.ts = 1
+
     def loop(self):
         self.remaining = self.timer_start+self.TIMER - time.time()
         
@@ -47,7 +56,11 @@ class Game:
         
         tw = 2*w3/self.WIDTH
         th = 2*h3/self.HEIGHT
-        self.ts = min(tw, th)
+        ts = min(tw, th)
+        if self.ts != ts:
+            self.ts = ts
+            self.resize()
+        
         surf.fill(0)
         
         ox, oy = surf.get_width()/2 - self.WIDTH/2*self.ts, surf.get_height()/2 - self.HEIGHT/2*self.ts
@@ -58,7 +71,12 @@ class Game:
                 if t != -1:
                     col = Player.TRAIL_COLORS[t]
 
-                    pygame.draw.circle(surf, col, [ox+(x+0.5)*self.ts, oy+(y+0.5)*self.ts], self.ts/4)
+                    drool_i = self.drool[y, x]
+                    texture = self.drool_textures[drool_i][t]
+                    #texture.fill(col+(255,), None, pygame.BLEND_RGBA_MULT)
+                    
+                    surf.blit(texture, [ox+(x-0.5)*self.ts, oy+(y-0.5)*self.ts])
+                    #pygame.draw.circle(surf, col, [ox+(x+0.5)*self.ts, oy+(y+0.5)*self.ts], self.ts/4)
         
         r = 1-max(0,self.remaining)/self.TIMER
         r = max(0, min(1, r))
@@ -115,6 +133,16 @@ class Game:
             r = self.COLLIDE_RADIUS*r*self.ts
             pygame.draw.circle(surf, (255,255,255), [ox+(self.collide_pos[0]+0.5)*self.ts, oy+(self.collide_pos[1]+0.5)*self.ts], r, 3)
     
+    def resize(self):
+        self.drool_textures = []
+        for i in range(16):
+            texture = pygame.image.load(f"assets/textures/drool/{i}.png")
+            texture = pygame.transform.scale(texture, [self.ts*2, self.ts*2])
+            red, blue = texture.copy(), texture.copy()
+            red.fill(Player.TRAIL_COLORS[0]+(255,), None, pygame.BLEND_RGBA_MULT)
+            blue.fill(Player.TRAIL_COLORS[1]+(255,), None, pygame.BLEND_RGBA_MULT)
+            self.drool_textures.append((red, blue))
+    
     def handle_key(self, event):
         if event.key == pygame.K_w:
             self.player.dir = 3
@@ -154,10 +182,12 @@ class Game:
                         break
                     
                     player.x, player.y = x2, y2
-                    self.trail_changes.append((x, y, player.i))
+                    if self.trails[y, x] != player.i:
+                        self.trail_changes.append((x, y, player.i))
 
             for x, y, i in self.trail_changes:
                 self.trails[y, x] = -1 if i == 2 else i
+                self.drool[y, x] = random.randint(0,15)
         
             self.send_sync()
             self.start_turn()
@@ -185,6 +215,7 @@ class Game:
         if trails:
             for x, y, i in trails:
                 self.trails[y, x] = -1 if i == 2 else i
+                self.drool[y, x] = random.randint(0,15)
             
             self.collide_start = col_start
             self.collide_pos = [col_x, col_y]
