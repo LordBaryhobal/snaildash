@@ -68,7 +68,7 @@ class Game:
         """txt = self.font.render(f"{max(0,self.remaining):.2f}", True, (255,255,255))
         surf.blit(txt, [0, 0])"""
         
-        remaining = self.start_time+self.DURATION - time.time()
+        remaining = self.start_time+self.DURATION - cur_time
         W = 2*w3
         w6 = w3/2
         w = W*remaining/self.DURATION
@@ -81,9 +81,31 @@ class Game:
         blueW = W*blue/full
         
         h24 = h3/8
-        pygame.draw.rect(surf, (180,180,180), [w6, h24, W, h24*2])
-        pygame.draw.rect(surf, Player.COLORS[0], [w6, h24, redW, h24*2])
-        pygame.draw.rect(surf, Player.COLORS[1], [w6+W-blueW, h24, blueW, h24*2])
+        w20 = W/20
+        
+        a = [w6+w20,   h24]
+        b = [w6+W+w20, h24]
+        c = [w6+W-w20, h24*2]
+        d = [w6-w20,   h24*2]
+        
+        red_e  = [w6+w20+redW,    h24]
+        blue_e = [w6+W+w20-blueW, h24]
+        red_f  = [w6-w20+redW,    h24*2]
+        blue_f = [w6+W-w20-blueW, h24*2]
+        
+        pygame.draw.polygon(surf, (180,180,180), [a,b,c,d])
+        pygame.draw.polygon(surf, Player.COLORS[0], [a,red_e,red_f,d])
+        pygame.draw.polygon(surf, Player.COLORS[1], [blue_e,b,c,blue_f])
+        
+        #pygame.draw.rect(surf, (180,180,180), [w6, h24, W, h24*2])
+        #pygame.draw.rect(surf, Player.COLORS[0], [w6, h24, redW, h24*2])
+        #pygame.draw.rect(surf, Player.COLORS[1], [w6+W-blueW, h24, blueW, h24*2])
+        
+        rem = self.collide_start+self.COLLIDE_DURATION-cur_time
+        if rem > 0:
+            r = 1-rem/self.COLLIDE_DURATION
+            r = self.COLLIDE_RADIUS*r*self.ts
+            pygame.draw.circle(surf, (255,255,255), [ox+(self.collide_pos[0]+0.5)*self.ts, oy+(self.collide_pos[1]+0.5)*self.ts], r, 3)
     
     def handle_key(self, event):
         if event.key == pygame.K_w:
