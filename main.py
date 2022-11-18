@@ -3,6 +3,7 @@ from game import Game
 from socket_handler import SocketHandler
 import time
 from math import floor
+import struct
 
 WIDTH, HEIGHT = 600, 600
 
@@ -153,32 +154,44 @@ class Manager:
         self.stage = Stage.COUNTDOWN
     
     def on_receive(self, data: bytes):
-        data = data.decode("utf-8")
-        if data == "quit":
+        #data = data.decode("utf-8")
+        if data == b"quit":
             self.quit()
             return
 
         if self.stage == Stage.WAITING_OPPONENT:
-            if data == "ready":
+            if data == b"ready":
                 self.play(True)
             
-            elif data == "start":
+            elif data == b"start":
                 self.play()
         
         elif self.stage == Stage.IN_GAME:
-            if data.startswith("turnEnd"):
-                if data.startswith("turnEndHost"):
-                    _, x1, y1, d1, s1, x2, y2, d2, s2, trails = data.split(",")
-                    trails = trails.split("/")
-                    trails = list(map(lambda t: tuple(map(int, t.split("|"))), trails))
+            if data.startswith(b"turnEnd"):
+                if data.startswith(b"turnEndHost"):
+                    x1, y1, d1, s1, x2, y2, d2, s2, trails_count = struct.unpack(">BBBBBBBBB", data[11:20])
+                    data = data[20:]
+                    trails = []
+                    for j in range(trails_count):
+                        x, y, i = struct.unpack(">BBB", data[3*j:3*j+3])
+                        trails.append((x, y, i))
+                    
+                    data = data[3*trails_count:]
+                    col_start, col_x, col_y = struct.unpack(">dBB", data)
+                    #_, x1, y1, d1, s1, x2, y2, d2, s2, trails, col_start, col_x, col_y = data.split(",")
+                    #trails = trails.split("/")
+                    #trails = list(map(lambda t: tuple(map(int, t.split("|"))), trails))
+                    #col_start = float(col_start)
                 
                 else:
-                    _, x1, y1, d1, s1, x2, y2, d2, s2 = data.split(",")
+                    x1, y1, d1, s1, x2, y2, d2, s2 = struct.unpack(">BBBBBBBB", data[7:])
+                    #_, x1, y1, d1, s1, x2, y2, d2, s2 = data.split(",")
                     trails = None
+                    col_start, col_x, col_y = 0, 0, 0
                 
-                x1, y1, d1, s1, x2, y2, d2, s2 = map(int, [x1, y1, d1, s1, x2, y2, d2, s2])
+                #x1, y1, d1, s1, x2, y2, d2, s2, col_x, col_y = map(int, [x1, y1, d1, s1, x2, y2, d2, s2, col_x, col_y])
                 
-                self.game.sync(x1, y1, d1, s1, x2, y2, d2, s2, trails)
+                self.game.sync(x1, y1, d1, s1, x2, y2, d2, s2, trails, col_start, col_x, col_y)
                 if self.is_host:
                     self.game.end_turn()
                 

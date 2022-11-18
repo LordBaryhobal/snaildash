@@ -1,6 +1,8 @@
 import numpy as np
 import pygame
 import time
+from math import floor, ceil
+import struct
 
 from player import Player
 
@@ -9,6 +11,8 @@ class Game:
     HEIGHT = 10
     TIMER = 0.25
     DURATION = 120
+    COLLIDE_DURATION = 1
+    COLLIDE_RADIUS = 4
 
     def __init__(self, manager):
         self.manager = manager
@@ -21,6 +25,8 @@ class Game:
         self.player = self.players[0]
         self.timer_start = 0
         self.start_time = 0
+        self.collide_start = 0
+        self.collide_pos = [0,0]
         self.trail_changes = []
         self.remaining = self.TIMER
 
@@ -34,6 +40,8 @@ class Game:
                     self.end_turn()
     
     def render(self, surf):
+        cur_time = time.time()
+        
         #self.ts = min(surf.get_width()/self.WIDTH, surf.get_height()/self.HEIGHT)
         w3, h3 = surf.get_width()/3, surf.get_height()/3
         
@@ -139,12 +147,17 @@ class Game:
                     x2 = max(0, min(self.WIDTH-1, x2))
                     y2 = max(0, min(self.HEIGHT-1, y2))
                     player.lx, player.ly = x, y
-                    player.x, player.y = x2, y2
                     
+                    p2 = self.players[1-player.i]
+                    if p2.x == x2 and p2.y == y2:
+                        self.collide()
+                        break
+                    
+                    player.x, player.y = x2, y2
                     self.trail_changes.append((x, y, player.i))
 
             for x, y, i in self.trail_changes:
-                self.trails[y, x] = i
+                self.trails[y, x] = -1 if i == 2 else i
         
             self.send_sync()
             self.start_turn()
@@ -152,7 +165,7 @@ class Game:
         else:
             self.send_sync()
     
-    def sync(self, x1, y1, d1, s1, x2, y2, d2, s2, trails=None):
+    def sync(self, x1, y1, d1, s1, x2, y2, d2, s2, trails=None, col_start=0, col_x=0, col_y=0):
         if self.player.i == 1 or not self.manager.is_host:
             self.players[0].lx = self.players[0].x
             self.players[0].ly = self.players[0].y
@@ -171,7 +184,10 @@ class Game:
         
         if trails:
             for x, y, i in trails:
-                self.trails[y, x] = i
+                self.trails[y, x] = -1 if i == 2 else i
+            
+            self.collide_start = col_start
+            self.collide_pos = [col_x, col_y]
                 
     def send_sync(self):
         x1 = self.players[0].x
@@ -189,9 +205,36 @@ class Game:
                 trails.append(f"{x}|{y}|{i}")
             
             trails = "/".join(trails)
-            msg = f"turnEndHost,{x1},{y1},{d1},{s1},{x2},{y2},{d2},{s2},{trails}"
+            msg = b"turnEndHost" + struct.pack(">BBBBBBBBB", x1,y1,d1,s1,x2,y2,d2,s2,len(self.trail_changes))
+            for x, y, i in self.trail_changes:
+                msg += struct.pack(">BBB", x,y,i)
+            
+            msg += struct.pack(">dBB", self.collide_start, self.collide_pos[0], self.collide_pos[1])
+            #msg = f"turnEndHost,{x1},{y1},{d1},{s1},{x2},{y2},{d2},{s2},{trails},{self.collide_start},{self.collide_pos[0]},{self.collide_pos[1]}"
             
         else:
-            msg = f"turnEnd,{x1},{y1},{d1},{s1},{x2},{y2},{d2},{s2}"
+            msg = b"turnEnd" + struct.pack(">BBBBBBBB", x1,y1,d1,s1,x2,y2,d2,s2)
+            #msg = f"turnEnd,{x1},{y1},{d1},{s1},{x2},{y2},{d2},{s2}"
         
-        self.manager.sh.send(msg.encode("utf-8"))
+        #self.manager.sh.send(msg.encode("utf-8"))
+        self.manager.sh.send(msg)
+    
+    def collide(self):
+        p1, p2 = self.players
+        p1.dir = (p1.dir+2)%4
+        p2.dir = (p2.dir+2)%4
+        
+        ox, oy = (p1.x+p2.x)/2, (p1.y+p2.y)/2
+        
+        self.collide_start = time.time()
+        self.collide_pos = [int(ox), int(oy)]
+        
+        x1, y1 = floor(ox-2), floor(oy-2)
+        x2, y2 = ceil(ox+2), ceil(oy+2)
+        
+        x1, x2 = max(0, min(self.WIDTH-1, x1)), max(0, min(self.WIDTH-1, x2))
+        y1, y2 = max(0, min(self.HEIGHT-1, y1)), max(0, min(self.HEIGHT-1, y2))
+        for y in range(y1, y2+1):
+            for x in range(x1, x2+1):
+                self.trail_changes.append((x, y, 2))
+        
