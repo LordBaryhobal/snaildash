@@ -119,7 +119,7 @@ class Game:
         red_f  = [w6-w20+redW,    h24*2]
         blue_f = [w6+W-w20-blueW, h24*2]
         
-        pygame.draw.polygon(surf, (180,180,180), [a,b,c,d])
+        #pygame.draw.polygon(surf, (180,180,180), [a,b,c,d])
         pygame.draw.polygon(surf, Player.COLORS[0], [a,red_e,red_f,d])
         pygame.draw.polygon(surf, Player.COLORS[1], [blue_e,b,c,blue_f])
         

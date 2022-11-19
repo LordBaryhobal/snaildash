@@ -211,6 +211,7 @@ if __name__ == "__main__":
     manager = Manager()
 
     while manager.stage != Stage.STOP:
+        pygame.display.set_caption(f"Snaildash - {clock.get_fps():.2f}fps")
         events = pygame.event.get()
         manager.handle_events(events)
         manager.render(win)
