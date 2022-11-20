@@ -309,13 +309,19 @@ class Manager:
             
         if red > blue:
             pygame.draw.rect(surf, Player.COLORS[0], [ox, oy, width, bar_h])
+            txt = "Vous avez "+["gagné", "perdu"][self.game.player.i]
         
         elif blue > red:
             pygame.draw.rect(surf, Player.COLORS[1], [ox, oy, width, bar_h])
+            txt = "Vous avez "+["perdu", "gagné"][self.game.player.i]
         
         else:
             pygame.draw.rect(surf, Player.COLORS[0], [ox, oy, width/2, bar_h])
             pygame.draw.rect(surf, Player.COLORS[1], [ox+width/2, oy, width/2, bar_h])
+            txt = "Vous êtes à égalité"
+        
+        txt = self.font.render(txt, True, (255,255,255))
+        surf.blit(txt, [ox+width/2-txt.get_width()/2, oy+bar_h/2-txt.get_height()/2])
         
         # Bonus scores
         cur = time.time()
