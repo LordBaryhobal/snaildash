@@ -8,8 +8,8 @@ import random
 from player import Player
 
 class Game:
-    WIDTH = 10
-    HEIGHT = 10
+    WIDTH = 15
+    HEIGHT = 15
     TIMER = 0.25
     DURATION = 60
     COLLIDE_DURATION = 1
@@ -105,7 +105,7 @@ class Game:
                     pygame.draw.line(surf, (0,255,0), [ox+X*self.ts, oy+(Y+1)*self.ts], [ox+(X+1)*self.ts, oy+Y*self.ts])
 
 
-        """txt = self.font.render(f"{max(0,self.remaining):.2f}", True, (255,255,255))
+        """txt = self.font.render(str(self.player.dashscore), True, (255,255,255))
         surf.blit(txt, [0, 0])"""
         
         remaining = self.start_time+self.DURATION - cur_time
@@ -158,17 +158,26 @@ class Game:
             self.drool_textures.append((red, blue))
     
     def handle_key(self, event):
+        ndir = self.player.dir%4
         if event.key == pygame.K_w:
-            self.player.dir = 3
+            ndir = 3
         
         elif event.key == pygame.K_s:
-            self.player.dir = 1
+            ndir = 1
         
         elif event.key == pygame.K_a:
-            self.player.dir = 2
+            ndir = 2
         
         elif event.key == pygame.K_d:
-            self.player.dir = 0
+            ndir = 0
+        
+        if (event.mod & pygame.KMOD_LSHIFT and self.player.candash()) or self.player.dash:
+            if not self.player.dash:
+                self.player.dash = True
+                self.player.usedash()
+            ndir += 4
+        self.player.dir = ndir 
+
     
     def start_turn(self):
         self.timer_start = time.time()
@@ -177,6 +186,8 @@ class Game:
         for player in self.players:
             player.lx, player.ly = player.x, player.y
             player.x, player.y = player.nx, player.ny
+            player.dir %= 4
+            player.dash = False
     
     def end_turn(self):
         if self.manager.is_host:
@@ -194,19 +205,57 @@ class Game:
                     #player.lx, player.ly = x, y
                     
                     player.nx, player.ny = x2, y2
-                    if self.trails[y, x] != player.i:
+                    if player.dir > 3:
+                        dx, dy = Player.OFFSETS[player.dir%4]
+                        for i in range(Player.DASH_SIZE):
+                            tx, ty = x+dx*i, y+dy*i
+                            if 0 <= tx < self.WIDTH and 0 <= ty < self.HEIGHT:
+                                if self.trails[ty, tx] != player.i:
+                                    self.trail_changes.append((tx, ty, player.i))
+                    elif self.trails[y, x] != player.i:
                         self.trail_changes.append((x, y, player.i))
 
             p1, p2 = self.players
-            if (p1.nx == p2.nx and p1.ny == p2.ny) or (p1.x == p2.nx and p1.y == p2.ny and p2.x == p1.nx and p2.y == p1.ny):
-                p1.nx, p1.ny = p1.x, p1.y
-                p2.nx, p2.ny = p2.x, p2.y
-                self.collide()
+            if p1.dir <=3:
+                if p2.dir <=3:
+                    if (p1.nx == p2.nx and p1.ny == p2.ny) or (p1.x == p2.nx and p1.y == p2.ny and p2.x == p1.nx and p2.y == p1.ny):
+                        p1.nx, p1.ny = p1.x, p1.y
+                        p2.nx, p2.ny = p2.x, p2.y
+                        self.collide()
+                else:
+                    dx, dy = Player.OFFSETS[p2.dir%4]
+                    p2_cells = [ (p2.x + dx*i, p2.y + dy*i) for i in range(1, Player.DASH_SIZE+1)]
+                    if (p1.nx, p1.ny) in p2_cells:
+                        p2.nx, p2.ny = p1.nx - dx, p1.ny - dy
+                        p1.nx, p1.ny = p1.x, p1.y
+                        self.collide()
+            else:
+                if p2.dir <=3:
+                    dx, dy = Player.OFFSETS[p1.dir%4]
+                    p1_cells = [(p1.x + dx*i, p1.y + dy*i) for i in range(1, Player.DASH_SIZE+1)]
+                    if (p2.nx, p2.ny) in p1_cells:
+                        p1.nx, p1.ny = p2.nx - dx, p2.ny - dy
+                        p2.nx, p2.ny = p2.x, p2.y
+                        self.collide()
+                else:
+                    #double dash
+                    dx_1, dy_1 = Player.OFFSETS[p1.dir%4]
+                    dx_2, dy_2 = Player.OFFSETS[p2.dir%4]
+                    for i in range(1, Player.DASH_SIZE):
+                        cx1, cy1 = p1.x + dx_1*i, p1.y + dy_1*i
+                        cx2, cy2 = p2.x + dx_2*i, p2.y + dy_2*i
+                        if (cx1, cy1) == (cx2, cy2):
+                            p1.nx, p1.ny = cx1 -dx_1, cy1 -dy_1
+                            p2.nx, p2.ny = cx2 -dx_2, cy2 -dy_2
+                            self.collide()
+                            break
             
             for x, y, i in self.trail_changes:
                 self.trails[y, x] = -1 if i == 2 else i
                 self.drool[y, x] = random.randint(0,15)
-        
+            for player in self.players:
+                if self.trails[player.ny, player.nx] == player.i:
+                    player.add_dashscore()
             self.send_sync()
             #self.start_turn()
             pygame.event.post(pygame.event.Event(pygame.USEREVENT))
@@ -214,7 +263,7 @@ class Game:
         else:
             self.send_sync()
     
-    def sync(self, x1, y1, d1, s1, x2, y2, d2, s2, trails=None, col_start=0, col_x=0, col_y=0):
+    def sync(self, x1, y1, d1, s1, ds1, x2, y2, d2, s2, ds2, trails=None, col_start=0, col_x=0, col_y=0):
         if self.player.i == 1 or not self.manager.is_host:
             self.players[0].lx = self.players[0].x
             self.players[0].ly = self.players[0].y
@@ -222,6 +271,7 @@ class Game:
             self.players[0].ny = y1
             self.players[0].dir = d1
             self.players[0].stun_count = s1
+            self.players[0].dashscore = ds1
         
         if self.player.i == 0 or not self.manager.is_host:
             self.players[1].lx = self.players[1].x
@@ -230,6 +280,7 @@ class Game:
             self.players[1].ny = y2
             self.players[1].dir = d2
             self.players[1].stun_count = s2
+            self.players[1].dashscore = ds2
         
         if trails:
             for x, y, i in trails:
@@ -244,10 +295,12 @@ class Game:
         y1 = self.players[0].ny
         d1 = self.players[0].dir
         s1 = int(self.players[0].stun_count)
+        ds1 = self.players[0].dashscore
         x2 = self.players[1].nx
         y2 = self.players[1].ny
         d2 = self.players[1].dir
         s2 = int(self.players[1].stun_count)
+        ds2 = self.players[1].dashscore
         
         if self.manager.is_host:
             trails = []
@@ -255,7 +308,7 @@ class Game:
                 trails.append(f"{x}|{y}|{i}")
             
             trails = "/".join(trails)
-            msg = b"turnEndHost" + struct.pack(">BBBBBBBBB", x1,y1,d1,s1,x2,y2,d2,s2,len(self.trail_changes))
+            msg = b"turnEndHost" + struct.pack(">BBBBBBBBBBB", x1,y1,d1,s1,ds1,x2,y2,d2,s2,ds2,len(self.trail_changes))
             for x, y, i in self.trail_changes:
                 msg += struct.pack(">BBB", x,y,i)
             
@@ -263,7 +316,7 @@ class Game:
             #msg = f"turnEndHost,{x1},{y1},{d1},{s1},{x2},{y2},{d2},{s2},{trails},{self.collide_start},{self.collide_pos[0]},{self.collide_pos[1]}"
             
         else:
-            msg = b"turnEnd" + struct.pack(">BBBBBBBB", x1,y1,d1,s1,x2,y2,d2,s2)
+            msg = b"turnEnd" + struct.pack(">BBBBBBBBBB", x1,y1,d1,s1,ds1,x2,y2,d2,s2,ds2)
             #msg = f"turnEnd,{x1},{y1},{d1},{s1},{x2},{y2},{d2},{s2}"
         
         #self.manager.sh.send(msg.encode("utf-8"))
@@ -273,7 +326,7 @@ class Game:
         p1, p2 = self.players
         for p in self.players:
             if not (p.dir == 0 and p.x == self.WIDTH-1) and not (p.dir == 1 and p.y == self.HEIGHT-1) and not (p.dir == 2 and p.x == 0) and not (p.dir == 3 and p.y== 0):
-                p.dir = (p.dir+2)%4
+                p.dir = (p.dir%4+2)%4
         
         ox, oy = (p1.x+p2.x)/2, (p1.y+p2.y)/2
         

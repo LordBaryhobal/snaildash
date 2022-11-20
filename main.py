@@ -377,8 +377,8 @@ class Manager:
         elif self.stage == Stage.IN_GAME:
             if data.startswith(b"turnEnd"):
                 if data.startswith(b"turnEndHost"):
-                    x1, y1, d1, s1, x2, y2, d2, s2, trails_count = struct.unpack(">BBBBBBBBB", data[11:20])
-                    data = data[20:]
+                    x1, y1, d1, s1, ds1, x2, y2, d2, s2, ds2, trails_count = struct.unpack(">BBBBBBBBBBB", data[11:22])
+                    data = data[22:]
                     trails = []
                     for j in range(trails_count):
                         x, y, i = struct.unpack(">BBB", data[3*j:3*j+3])
@@ -392,14 +392,14 @@ class Manager:
                     #col_start = float(col_start)
                 
                 else:
-                    x1, y1, d1, s1, x2, y2, d2, s2 = struct.unpack(">BBBBBBBB", data[7:])
+                    x1, y1, d1, s1, ds1, x2, y2, d2, s2, ds2 = struct.unpack(">BBBBBBBBBB", data[7:])
                     #_, x1, y1, d1, s1, x2, y2, d2, s2 = data.split(",")
                     trails = None
                     col_start, col_x, col_y = 0, 0, 0
                 
                 #x1, y1, d1, s1, x2, y2, d2, s2, col_x, col_y = map(int, [x1, y1, d1, s1, x2, y2, d2, s2, col_x, col_y])
                 
-                self.game.sync(x1, y1, d1, s1, x2, y2, d2, s2, trails, col_start, col_x, col_y)
+                self.game.sync(x1, y1, d1, s1, ds1, x2, y2, d2, s2, ds2, trails, col_start, col_x, col_y)
                 if self.is_host:
                     self.game.end_turn()
                 
