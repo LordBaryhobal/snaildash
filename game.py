@@ -32,11 +32,6 @@ class Game:
         self.remaining = self.TIMER
 
         self.drool = np.zeros([self.HEIGHT, self.WIDTH], dtype="int8")-1
-        """self.drool_textures = []
-        for i in range(16):
-            texture = pygame.image.load(f"assets/textures/drool/{i}.png")
-            self.drool_textures.append(texture)"""
-        
         self.ts = 1
 
     def reset(self):
@@ -63,7 +58,6 @@ class Game:
     def render(self, surf, render_players=True):
         cur_time = time.time()
         
-        #self.ts = min(surf.get_width()/self.WIDTH, surf.get_height()/self.HEIGHT)
         w3, h3 = surf.get_width()/3, surf.get_height()/3
         
         tw = 2*w3/self.WIDTH
@@ -85,10 +79,8 @@ class Game:
 
                     drool_i = self.drool[y, x]
                     texture = self.drool_textures[drool_i][t]
-                    #texture.fill(col+(255,), None, pygame.BLEND_RGBA_MULT)
                     
                     surf.blit(texture, [ox+(x-0.5)*self.ts, oy+(y-0.5)*self.ts])
-                    #pygame.draw.circle(surf, col, [ox+(x+0.5)*self.ts, oy+(y+0.5)*self.ts], self.ts/4)
         
         r = 1-max(0,self.remaining)/self.TIMER
         r = max(0, min(1, r))
@@ -103,10 +95,6 @@ class Game:
                 if player.stun_count != 0:
                     pygame.draw.line(surf, (0,255,0), [ox+X*self.ts, oy+Y*self.ts], [ox+(X+1)*self.ts, oy+(Y+1)*self.ts])
                     pygame.draw.line(surf, (0,255,0), [ox+X*self.ts, oy+(Y+1)*self.ts], [ox+(X+1)*self.ts, oy+Y*self.ts])
-
-
-        """txt = self.font.render(str(self.player.dashscore), True, (255,255,255))
-        surf.blit(txt, [0, 0])"""
         
         remaining = self.start_time+self.DURATION - cur_time
         W = 2*w3
@@ -133,13 +121,8 @@ class Game:
         red_f  = [w6-w20+redW,    h24*2]
         blue_f = [w6+W-w20-blueW, h24*2]
         
-        #pygame.draw.polygon(surf, (180,180,180), [a,b,c,d])
         pygame.draw.polygon(surf, Player.COLORS[0], [a,red_e,red_f,d])
         pygame.draw.polygon(surf, Player.COLORS[1], [blue_e,b,c,blue_f])
-        
-        #pygame.draw.rect(surf, (180,180,180), [w6, h24, W, h24*2])
-        #pygame.draw.rect(surf, Player.COLORS[0], [w6, h24, redW, h24*2])
-        #pygame.draw.rect(surf, Player.COLORS[1], [w6+W-blueW, h24, blueW, h24*2])
         
         rem = self.collide_start+self.COLLIDE_DURATION-cur_time
         if rem > 0:
@@ -202,7 +185,6 @@ class Game:
                     x2, y2 = x+dx, y+dy
                     x2 = max(0, min(self.WIDTH-1, x2))
                     y2 = max(0, min(self.HEIGHT-1, y2))
-                    #player.lx, player.ly = x, y
                     
                     player.nx, player.ny = x2, y2
                     if player.dir > 3:
@@ -257,7 +239,6 @@ class Game:
                 if self.trails[player.ny, player.nx] == player.i:
                     player.add_dashscore()
             self.send_sync()
-            #self.start_turn()
             pygame.event.post(pygame.event.Event(pygame.USEREVENT))
             
         else:
@@ -313,13 +294,10 @@ class Game:
                 msg += struct.pack(">BBB", x,y,i)
             
             msg += struct.pack(">dBB", self.collide_start, self.collide_pos[0], self.collide_pos[1])
-            #msg = f"turnEndHost,{x1},{y1},{d1},{s1},{x2},{y2},{d2},{s2},{trails},{self.collide_start},{self.collide_pos[0]},{self.collide_pos[1]}"
             
         else:
             msg = b"turnEnd" + struct.pack(">BBBBBBBBBB", x1,y1,d1,s1,ds1,x2,y2,d2,s2,ds2)
-            #msg = f"turnEnd,{x1},{y1},{d1},{s1},{x2},{y2},{d2},{s2}"
         
-        #self.manager.sh.send(msg.encode("utf-8"))
         self.manager.sh.send(msg)
     
     def collide(self):

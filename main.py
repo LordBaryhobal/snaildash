@@ -84,7 +84,6 @@ class Manager:
             y1 = -txt.get_height()
             r = 1 - (r - round(r))
             r = max(0, 2.5*(r-0.6))
-            #r = max(0, 5*r-4)
             r = r**2
             y = r*(y1-y0)+y0
 
@@ -353,16 +352,10 @@ class Manager:
         
         self.game.reset()
         
-        """
-        self.stage = Stage.IN_GAME
-        self.game.start_time = time.time()
-        self.game.start_turn()
-        """
         self.countdown_start = time.time()
         self.stage = Stage.COUNTDOWN
     
     def on_receive(self, data: bytes):
-        #data = data.decode("utf-8")
         if data == b"quit":
             self.quit()
             return
@@ -386,18 +379,11 @@ class Manager:
                     
                     data = data[3*trails_count:]
                     col_start, col_x, col_y = struct.unpack(">dBB", data)
-                    #_, x1, y1, d1, s1, x2, y2, d2, s2, trails, col_start, col_x, col_y = data.split(",")
-                    #trails = trails.split("/")
-                    #trails = list(map(lambda t: tuple(map(int, t.split("|"))), trails))
-                    #col_start = float(col_start)
                 
                 else:
                     x1, y1, d1, s1, ds1, x2, y2, d2, s2, ds2 = struct.unpack(">BBBBBBBBBB", data[7:])
-                    #_, x1, y1, d1, s1, x2, y2, d2, s2 = data.split(",")
                     trails = None
                     col_start, col_x, col_y = 0, 0, 0
-                
-                #x1, y1, d1, s1, x2, y2, d2, s2, col_x, col_y = map(int, [x1, y1, d1, s1, x2, y2, d2, s2, col_x, col_y])
                 
                 self.game.sync(x1, y1, d1, s1, ds1, x2, y2, d2, s2, ds2, trails, col_start, col_x, col_y)
                 if self.is_host:
@@ -405,7 +391,6 @@ class Manager:
                 
                 else:
                     pygame.event.post(pygame.event.Event(pygame.USEREVENT))
-                    #self.game.start_turn()
 
 if __name__ == "__main__":
     pygame.init()
