@@ -16,3 +16,12 @@ class Player:
         self.stun_count = 0
         self.dir = i*2  # 0, 1, 2, 3 -> right, down, left, up
         self.synced = False
+    
+    def reset(self, x, y):
+        self.x = x
+        self.y = y
+        self.lx, self.ly = x, y
+        self.nx, self.ny = x, y
+        self.dir = self.i*2
+        self.stun_count = 0
+        self.synced = False

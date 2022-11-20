@@ -11,7 +11,7 @@ class Game:
     WIDTH = 10
     HEIGHT = 10
     TIMER = 0.25
-    DURATION = 120
+    DURATION = 60
     COLLIDE_DURATION = 1
     COLLIDE_RADIUS = 4
 
@@ -39,6 +39,18 @@ class Game:
         
         self.ts = 1
 
+    def reset(self):
+        self.trails = np.zeros([self.HEIGHT, self.WIDTH], dtype="int8")-1
+        self.players[0].reset(0, 0)
+        self.players[1].reset(self.WIDTH-1, self.HEIGHT-1)
+        
+        self.collide_start = 0
+        self.collide_pos = [0,0]
+        self.trail_changes = []
+        self.remaining = self.TIMER
+
+        self.drool = np.zeros([self.HEIGHT, self.WIDTH], dtype="int8")-1
+
     def loop(self):
         self.remaining = self.timer_start+self.TIMER - time.time()
         
@@ -48,7 +60,7 @@ class Game:
                     self.player.synced = True
                     self.end_turn()
     
-    def render(self, surf):
+    def render(self, surf, render_players=True):
         cur_time = time.time()
         
         #self.ts = min(surf.get_width()/self.WIDTH, surf.get_height()/self.HEIGHT)
@@ -85,10 +97,12 @@ class Game:
             lx, ly = player.lx, player.ly
             X, Y = lx+(x-lx)*r, ly+(y-ly)*r
             
-            pygame.draw.circle(surf, Player.COLORS[player.i], [ox+(X+0.5)*self.ts, oy+(Y+0.5)*self.ts], self.ts/2)
-            if player.stun_count != 0:
-                pygame.draw.line(surf, (0,255,0), [ox+X*self.ts, oy+Y*self.ts], [ox+(X+1)*self.ts, oy+(Y+1)*self.ts])
-                pygame.draw.line(surf, (0,255,0), [ox+X*self.ts, oy+(Y+1)*self.ts], [ox+(X+1)*self.ts, oy+Y*self.ts])
+            if render_players:
+                pygame.draw.circle(surf, Player.COLORS[player.i], [ox+(X+0.5)*self.ts, oy+(Y+0.5)*self.ts], self.ts/2)
+
+                if player.stun_count != 0:
+                    pygame.draw.line(surf, (0,255,0), [ox+X*self.ts, oy+Y*self.ts], [ox+(X+1)*self.ts, oy+(Y+1)*self.ts])
+                    pygame.draw.line(surf, (0,255,0), [ox+X*self.ts, oy+(Y+1)*self.ts], [ox+(X+1)*self.ts, oy+Y*self.ts])
 
 
         """txt = self.font.render(f"{max(0,self.remaining):.2f}", True, (255,255,255))
