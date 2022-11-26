@@ -230,7 +230,15 @@ class Manager:
         p2P = [(self.p2Pe[0]-self.p2Ps[0])*r+self.p2Ps[0], (self.p2Pe[1]-self.p2Ps[1])*r+self.p2Ps[1]]
         R = self.game.ts * (r+1)/2
         pygame.draw.circle(surf, Player.COLORS[0], p1P, R)
-        pygame.draw.circle(surf, Player.COLORS[1], p2P, R)
+        #pygame.draw.circle(surf, Player.COLORS[1], p2P, R)
+        
+        texture = self.game.snail[0]
+        shell = self.game.shell
+        """if self.game.player.dir % 4 != 0:
+            texture = pygame.transform.rotate(texture, -(self.game.player.dir%4)*90)
+            shell = pygame.transform.rotate(shell, -(self.game.player.dir%4)*90)"""
+        surf.blit(texture, [p2P[0]-texture.get_width()/2, p2P[1]-texture.get_height()/2])
+        surf.blit(shell, [p2P[0]-shell.get_width()/2, p2P[1]-shell.get_height()/2])
     
     def render_breakdown_bar(self, surf):
         surf.fill(0)

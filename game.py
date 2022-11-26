@@ -75,8 +75,6 @@ class Game:
             for x in range(self.WIDTH):
                 t = self.trails[y, x]
                 if t != -1:
-                    col = Player.TRAIL_COLORS[t]
-
                     drool_i = self.drool[y, x]
                     texture = self.drool_textures[drool_i][t]
                     
@@ -90,6 +88,16 @@ class Game:
             X, Y = lx+(x-lx)*r, ly+(y-ly)*r
             
             if render_players:
+                if player.i == 1:
+                    _ = 1.5-abs(1.5 - r*5)
+                    texture = self.snail[int(_)]
+                    shell = self.shell
+                    if player.dir % 4 != 0:
+                        texture = pygame.transform.rotate(texture, -(player.dir%4)*90)
+                        shell = pygame.transform.rotate(shell, -(player.dir%4)*90)
+                    surf.blit(texture, [ox+(X-0.5)*self.ts, oy+(Y-0.5)*self.ts])
+                    surf.blit(shell, [ox+(X-0.5)*self.ts, oy+(Y-0.5)*self.ts])
+                    continue
                 pygame.draw.circle(surf, Player.COLORS[player.i], [ox+(X+0.5)*self.ts, oy+(Y+0.5)*self.ts], self.ts/2)
 
                 if player.stun_count != 0:
@@ -139,6 +147,15 @@ class Game:
             red.fill(Player.TRAIL_COLORS[0]+(255,), None, pygame.BLEND_RGBA_MULT)
             blue.fill(Player.TRAIL_COLORS[1]+(255,), None, pygame.BLEND_RGBA_MULT)
             self.drool_textures.append((red, blue))
+        
+        self.snail = []
+        for i in range(3):
+            texture = pygame.image.load(f"assets/textures/snail/{i}.png")
+            texture = pygame.transform.scale(texture, [self.ts*2, self.ts*2])
+            self.snail.append(texture)
+                
+        self.shell = pygame.image.load("assets/textures/snail/shell.png")
+        self.shell = pygame.transform.scale(self.shell, [self.ts*2, self.ts*2])
     
     def handle_key(self, event):
         ndir = self.player.dir%4
