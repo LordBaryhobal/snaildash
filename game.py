@@ -14,6 +14,7 @@ class Game:
     DURATION = 60
     COLLIDE_DURATION = 1
     COLLIDE_RADIUS = 4
+    BOMB_SIZE = 3
 
     def __init__(self, manager):
         self.manager = manager
@@ -22,6 +23,7 @@ class Game:
             Player(self, 1, self.WIDTH-1, self.HEIGHT-1)
         ]
         self.font = pygame.font.SysFont("arial", 30)
+        self.bonus = [self.bomb, self.row, self.column]
         self.player = self.players[0]
         self.timer_start = 0
         self.start_time = 0
@@ -39,6 +41,11 @@ class Game:
         self.remaining = self.TIMER
 
         self.drool = np.zeros([self.HEIGHT, self.WIDTH], dtype="int8")-1
+        self.bonus_list = {
+            (2,2): 1,
+            (4,4):2,
+            (8,8):0,
+        }
 
     def loop(self):
         self.remaining = self.timer_start+self.TIMER - time.time()
@@ -69,12 +76,14 @@ class Game:
             for x in range(self.WIDTH):
                 t = self.trails[y, x]
                 if t != -1:
-                    col = Player.TRAIL_COLORS[t]
-
                     drool_i = self.drool[y, x]
                     texture = self.drool_textures[drool_i][t]
                     
                     surf.blit(texture, [ox+(x-0.5)*self.ts, oy+(y-0.5)*self.ts])
+        for b in self.bonus_list:
+            b_id = self.bonus_list[b]
+            x, y = b
+            surf.blit(self.bonus_textures[b_id], [ox + (x-0.5)*self.ts, oy + (y-0.5)*self.ts])
         
         r = 1-max(0,self.remaining)/self.TIMER
         r = max(0, min(1, r))
@@ -133,6 +142,14 @@ class Game:
             red.fill(Player.TRAIL_COLORS[0]+(255,), None, pygame.BLEND_RGBA_MULT)
             blue.fill(Player.TRAIL_COLORS[1]+(255,), None, pygame.BLEND_RGBA_MULT)
             self.drool_textures.append((red, blue))
+        self.bonus_textures = []
+        for b in ("bomb", "row", "column"):
+            if b =="column":
+                texture = pygame.transform.rotate(pygame.image.load(f"assets/textures/bonus/row.png"), 90)
+            else:
+                texture = pygame.image.load(f"assets/textures/bonus/{b}.png")
+            texture = pygame.transform.scale(texture, [self.ts*2, self.ts*2])
+            self.bonus_textures.append(texture)
     
     def handle_key(self, event):
         ndir = self.player.dir%4
@@ -317,4 +334,19 @@ class Game:
         for y in range(y1, y2+1):
             for x in range(x1, x2+1):
                 self.trail_changes.append((x, y, 2))
+            
+    def bomb(self, x, y, i):
+        sx, sy = max(ceil(x-(self.BOMB_SIZE/2)),0), max(ceil(y-(self.BOMB_SIZE/2)), 0)
+        esx, esy = min(floor(x + self.BOMB_SIZE/2), self.WIDTH-1)+1, min(floor(y + self.BOMB_SIZE/2), self.HEIGHT-1)+1
+        for by in range(sy, esy):
+            for bx in range(sx, esx):
+                self.trail_changes.append((bx, by, i))
+    
+    def row(self, x, y, i):
+        for rx in range(0,self.WIDTH):
+            self.trail_changes.append((rx, y, i))
+        
+    def column(self, x, y, i):
+        for ry in range(0,self.HEIGHT):
+            self.trail_changes.append((x, ry, i))
         
