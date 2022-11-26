@@ -5,6 +5,7 @@ import time
 import struct
 from player import Player
 import numpy as np
+import random
 
 WIDTH, HEIGHT = 600, 600
 
@@ -42,6 +43,8 @@ class Manager:
         self.bonus_scores = []
         self.home_btn_rect = None
         self.home_btn_pressed = False
+        
+        self.load_sounds()
         
         print(f"The code for this machine is: {self.sh.get_code()}")
         code = input("Code of the other machine (leave empty to host): ")
@@ -135,6 +138,7 @@ class Manager:
                         r = self.play_btn_rect
                         if r[0] <= x < r[0]+r[2] and r[1] <= y < r[1]+r[3]:
                             if self.play_btn_pressed:
+                                self.click_sound.play()
                                 self.play_btn_pressed = False
                                 self.sh.send(b"ready")
                                 self.stage = Stage.WAITING_OPPONENT
@@ -145,11 +149,17 @@ class Manager:
                         if r:
                             if r[0] <= x < r[0]+r[2] and r[1] <= y < r[1]+r[3]:
                                 if self.home_btn_pressed:
+                                    self.click_sound.play()
                                     self.home_btn_pressed = False
                                     self.stage = Stage.MAIN_MENU
             
             elif event.type == pygame.USEREVENT:
                 self.game.start_turn()
+            
+            elif event.type == pygame.USEREVENT+1:
+                sound = random.choice(self.squish_sounds)
+                if self.is_host:
+                    sound.play()
         
         if self.stage == Stage.COUNTDOWN:
             rem = self.countdown_start+self.COUNTDOWN-time.time()
@@ -397,6 +407,14 @@ class Manager:
                 
                 else:
                     pygame.event.post(pygame.event.Event(pygame.USEREVENT))
+    
+    def load_sounds(self):
+        self.squish_sounds = []
+        for i in range(8):
+            sound = pygame.mixer.Sound(f"assets/sounds/squish/{i}.ogg")
+            self.squish_sounds.append(sound)
+        
+        self.click_sound = pygame.mixer.Sound("assets/sounds/click.ogg")
 
 if __name__ == "__main__":
     pygame.init()
