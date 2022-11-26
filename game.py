@@ -17,7 +17,6 @@ class Game:
 
     def __init__(self, manager):
         self.manager = manager
-        self.trails = np.zeros([self.HEIGHT, self.WIDTH], dtype="int8")-1
         self.players = [
             Player(self, 0, 0, 0),
             Player(self, 1, self.WIDTH-1, self.HEIGHT-1)
@@ -26,13 +25,8 @@ class Game:
         self.player = self.players[0]
         self.timer_start = 0
         self.start_time = 0
-        self.collide_start = 0
-        self.collide_pos = [0,0]
-        self.trail_changes = []
-        self.remaining = self.TIMER
-
-        self.drool = np.zeros([self.HEIGHT, self.WIDTH], dtype="int8")-1
         self.ts = 1
+        self.reset()
 
     def reset(self):
         self.trails = np.zeros([self.HEIGHT, self.WIDTH], dtype="int8")-1
