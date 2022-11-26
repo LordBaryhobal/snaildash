@@ -226,12 +226,16 @@ class Game:
                             self.collide()
                             break
             
-            for x, y, i in self.trail_changes:
-                self.trails[y, x] = -1 if i == 2 else i
-                self.drool[y, x] = random.randint(0,15)
             for player in self.players:
                 if self.trails[player.ny, player.nx] == player.i:
                     player.add_dashscore()
+                pos = (player.nx, player.ny)
+                if pos in self.bonus_list:
+                    self.bonus[self.bonus_list[pos]](*pos, player.i)
+                    self.bonus_list.pop(pos)
+            for x, y, i in self.trail_changes:
+                self.trails[y, x] = -1 if i == 2 else i
+                self.drool[y, x] = random.randint(0,15)
             self.send_sync()
             pygame.event.post(pygame.event.Event(pygame.USEREVENT))
             
