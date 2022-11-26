@@ -182,6 +182,9 @@ class Game:
             player.x, player.y = player.nx, player.ny
             player.dir %= 4
             player.dash = False
+        
+        if random.random() < 0.25:
+            pygame.event.post(pygame.event.Event(pygame.USEREVENT+1))
     
     def end_turn(self):
         if self.manager.is_host:
