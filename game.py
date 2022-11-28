@@ -82,7 +82,8 @@ class Game:
                     texture = self.drool_textures[drool_i][t]
                     
                     surf.blit(texture, [ox+(x-0.5)*self.ts, oy+(y-0.5)*self.ts])
-        for b in self.bonus_list:
+        bonus_l = self.bonus_list.copy()
+        for b in bonus_l:
             b_id = self.bonus_list[b]
             x, y = b
             surf.blit(self.bonus_textures[b_id], [ox + (x-0.5)*self.ts, oy + (y-0.5)*self.ts])
@@ -145,7 +146,7 @@ class Game:
             blue.fill(Player.TRAIL_COLORS[1]+(255,), None, pygame.BLEND_RGBA_MULT)
             self.drool_textures.append((red, blue))
         self.bonus_textures = []
-        for b in ("bomb", "row", "column"):
+        for b in ("bomb", "row", "column", "poison"):
             if b =="column":
                 texture = pygame.transform.rotate(pygame.image.load(os.path.join("assets","textures","bonus","row.png")), 90)
             else:
@@ -267,7 +268,7 @@ class Game:
                 self.trails[y, x] = -1 if i == 255 else i
                 self.drool[y, x] = random.randint(0,15)
             
-            if len(self.bonus) < self.MAX_BONUS and random.random() < self.BONUS_CHANCE:
+            if len(self.bonus_list) < self.MAX_BONUS and random.random() < self.BONUS_CHANCE:
                 self.new_bonus()
 
             self.send_sync()
@@ -375,8 +376,8 @@ class Game:
         self.players[i].poisoned = self.POISON_TIME
     
     def new_bonus(self):
-        x, y = random.randint(0,self.WIDTH), random.randint(0,self.HEIGHT)
-        id = random.randint(0,len(self.bonus))
+        x, y = random.randint(0,self.WIDTH-1), random.randint(0,self.HEIGHT-1)
+        id = random.randint(0,len(self.bonus)-1)
         if (x, y) in self.bonus_list:
             self.new_bonus()
             return
