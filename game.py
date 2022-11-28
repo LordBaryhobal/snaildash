@@ -276,7 +276,7 @@ class Game:
         else:
             self.send_sync()
     
-    def sync(self, x1, y1, d1, s1, ds1, x2, y2, d2, s2, ds2, trails=None, col_start=0, col_x=0, col_y=0):
+    def sync(self, x1, y1, d1, s1, ds1, x2, y2, d2, s2, ds2, trails=None, bonus_list=None, col_start=0, col_x=0, col_y=0):
         if self.player.i == 1 or not self.manager.is_host:
             self.players[0].lx = self.players[0].x
             self.players[0].ly = self.players[0].y
@@ -300,6 +300,7 @@ class Game:
                 self.trails[y, x] = -1 if i == 255 else i
                 self.drool[y, x] = random.randint(0,15)
             
+            self.bonus_list = bonus_list
             self.collide_start = col_start
             self.collide_pos = [col_x, col_y]
                 
@@ -321,8 +322,11 @@ class Game:
                 trails.append(f"{x}|{y}|{i}")
             
             trails = "/".join(trails)
-            msg = b"turnEndHost" + struct.pack(">BBBBBBBBBBB", x1,y1,d1,s1,ds1,x2,y2,d2,s2,ds2,len(self.trail_changes))
+            msg = b"turnEndHost" + struct.pack(">BBBBBBBBBBBB", x1,y1,d1,s1,ds1,x2,y2,d2,s2,ds2,len(self.trail_changes),len(self.bonus_list))
             for x, y, i in self.trail_changes:
+                msg += struct.pack(">BBB", x,y,i)
+            
+            for (x, y), i in self.bonus_list.items():
                 msg += struct.pack(">BBB", x,y,i)
             
             msg += struct.pack(">dBB", self.collide_start, self.collide_pos[0], self.collide_pos[1])
