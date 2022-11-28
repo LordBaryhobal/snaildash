@@ -6,6 +6,7 @@ import struct
 from player import Player
 import numpy as np
 import random
+import os
 
 WIDTH, HEIGHT = 600, 600
 
@@ -411,10 +412,10 @@ class Manager:
     def load_sounds(self):
         self.squish_sounds = []
         for i in range(8):
-            sound = pygame.mixer.Sound(f"assets/sounds/squish/{i}.ogg")
+            sound = pygame.mixer.Sound(os.path.join("assets","sounds","squish",f"{i}.wav"))
             self.squish_sounds.append(sound)
         
-        self.click_sound = pygame.mixer.Sound("assets/sounds/click.ogg")
+        self.click_sound = pygame.mixer.Sound(os.path.join("assets","sounds","click.wav"))
 
 if __name__ == "__main__":
     pygame.init()

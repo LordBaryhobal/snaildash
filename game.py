@@ -4,6 +4,7 @@ import time
 from math import floor, ceil
 import struct
 import random
+import os
 
 from player import Player
 
@@ -136,7 +137,7 @@ class Game:
     def resize(self):
         self.drool_textures = []
         for i in range(16):
-            texture = pygame.image.load(f"assets/textures/drool/{i}.png")
+            texture = pygame.image.load(os.path.join("assets","textures","drool",f"{i}.png"))
             texture = pygame.transform.scale(texture, [self.ts*2, self.ts*2])
             red, blue = texture.copy(), texture.copy()
             red.fill(Player.TRAIL_COLORS[0]+(255,), None, pygame.BLEND_RGBA_MULT)
@@ -145,9 +146,9 @@ class Game:
         self.bonus_textures = []
         for b in ("bomb", "row", "column"):
             if b =="column":
-                texture = pygame.transform.rotate(pygame.image.load(f"assets/textures/bonus/row.png"), 90)
+                texture = pygame.transform.rotate(pygame.image.load(os.path.join("assets","textures","bonus","row.png"), 90))
             else:
-                texture = pygame.image.load(f"assets/textures/bonus/{b}.png")
+                texture = pygame.image.load(os.path.join("assets","textures","bonus","{b}.png"))
             texture = pygame.transform.scale(texture, [self.ts*2, self.ts*2])
             self.bonus_textures.append(texture)
     
