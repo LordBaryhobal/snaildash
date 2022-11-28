@@ -216,12 +216,12 @@ class Game:
                             tx, ty = x+dx*i, y+dy*i
                             if 0 <= tx < self.WIDTH and 0 <= ty < self.HEIGHT:
                                 if self.trails[ty, tx] != player.i:
-                                    if player.poisoned < 0:
+                                    if player.poisoned > 0:
                                         self.trail_changes.append((tx, ty, player.i + 2))
                                     else:
                                         self.trail_changes.append((tx, ty, player.i))
                     elif self.trails[y, x] != player.i:
-                        if player.poisoned < 0:
+                        if player.poisoned > 0:
                             self.trail_changes.append((x,y,player.i + 2))
                         else:
                             self.trail_changes.append((x, y, player.i))
@@ -367,15 +367,24 @@ class Game:
         esx, esy = min(floor(x + self.BOMB_SIZE/2), self.WIDTH-1)+1, min(floor(y + self.BOMB_SIZE/2), self.HEIGHT-1)+1
         for by in range(sy, esy):
             for bx in range(sx, esx):
-                self.trail_changes.append((bx, by, i))
+                if self.players[i].poisoned > 0:
+                    self.trail_changes.append((bx, by, i+2))
+                else:
+                    self.trail_changes.append((bx, by, i))
     
     def row(self, x, y, i):
         for rx in range(0,self.WIDTH):
-            self.trail_changes.append((rx, y, i))
+            if self.players[i].poisoned > 0:
+                self.trail_changes.append((rx, y, i+2))
+            else:
+                self.trail_changes.append((rx, y, i))
         
     def column(self, x, y, i):
         for ry in range(0,self.HEIGHT):
-            self.trail_changes.append((x, ry, i))
+            if self.players[i].poisoned > 0:
+                self.trail_changes.append((x, ry, i+2))
+            else:
+                self.trail_changes.append((x, ry, i))
     
     def poison(self, x, y, i):
         self.players[i].poisoned = self.POISON_TIME
