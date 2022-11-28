@@ -32,7 +32,8 @@ class Player:
         self.synced = False
         self.dashscore = 0
         self.dash = False
-        
+        self.poisoned = 0
+
     def candash(self):
         return self.dashscore >= self.DASH_COST
         

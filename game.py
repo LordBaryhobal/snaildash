@@ -15,7 +15,11 @@ class Game:
     DURATION = 60
     COLLIDE_DURATION = 1
     COLLIDE_RADIUS = 4
-    BOMB_SIZE = 3
+    BOMB_SIZE = 5
+    DISTANCE_MIN = 4
+    MAX_BONUS = 4
+    BONUS_CHANCE = 0.2
+    POISON_TIME = 4
 
     def __init__(self, manager):
         self.manager = manager
@@ -24,7 +28,7 @@ class Game:
             Player(self, 1, self.WIDTH-1, self.HEIGHT-1)
         ]
         self.font = pygame.font.SysFont("arial", 30)
-        self.bonus = [self.bomb, self.row, self.column]
+        self.bonus = [self.bomb, self.row, self.column, self.poison]
         self.player = self.players[0]
         self.timer_start = 0
         self.start_time = 0
@@ -43,9 +47,6 @@ class Game:
 
         self.drool = np.zeros([self.HEIGHT, self.WIDTH], dtype="int8")-1
         self.bonus_list = {
-            (2,2): 1,
-            (4,4):2,
-            (8,8):0,
         }
 
     def loop(self):
@@ -183,6 +184,7 @@ class Game:
             player.x, player.y = player.nx, player.ny
             player.dir %= 4
             player.dash = False
+            player.poisoned = max(player.poisoned-1, 0)
         
         if random.random() < 0.25:
             pygame.event.post(pygame.event.Event(pygame.USEREVENT+1))
@@ -208,9 +210,15 @@ class Game:
                             tx, ty = x+dx*i, y+dy*i
                             if 0 <= tx < self.WIDTH and 0 <= ty < self.HEIGHT:
                                 if self.trails[ty, tx] != player.i:
-                                    self.trail_changes.append((tx, ty, player.i))
+                                    if player.poisoned < 0:
+                                        self.trail_changes.append((tx, ty, player.i + 2))
+                                    else:
+                                        self.trail_changes.append((tx, ty, player.i))
                     elif self.trails[y, x] != player.i:
-                        self.trail_changes.append((x, y, player.i))
+                        if player.poisoned < 0:
+                            self.trail_changes.append((x,y,player.i + 2))
+                        else:
+                            self.trail_changes.append((x, y, player.i))
 
             p1, p2 = self.players
             if p1.dir <=3:
@@ -255,8 +263,13 @@ class Game:
                     self.bonus[self.bonus_list[pos]](*pos, player.i)
                     self.bonus_list.pop(pos)
             for x, y, i in self.trail_changes:
-                self.trails[y, x] = -1 if i == 2 else i
+
+                self.trails[y, x] = -1 if i == 255 else i
                 self.drool[y, x] = random.randint(0,15)
+            
+            if len(self.bonus) < self.MAX_BONUS and random.random() < self.BONUS_CHANCE:
+                self.new_bonus()
+
             self.send_sync()
             pygame.event.post(pygame.event.Event(pygame.USEREVENT))
             
@@ -284,7 +297,7 @@ class Game:
         
         if trails:
             for x, y, i in trails:
-                self.trails[y, x] = -1 if i == 2 else i
+                self.trails[y, x] = -1 if i == 255 else i
                 self.drool[y, x] = random.randint(0,15)
             
             self.collide_start = col_start
@@ -337,7 +350,7 @@ class Game:
         y1, y2 = max(0, min(self.HEIGHT-1, y1)), max(0, min(self.HEIGHT-1, y2))
         for y in range(y1, y2+1):
             for x in range(x1, x2+1):
-                self.trail_changes.append((x, y, 2))
+                self.trail_changes.append((x, y, 255))
             
     def bomb(self, x, y, i):
         sx, sy = max(ceil(x-(self.BOMB_SIZE/2)),0), max(ceil(y-(self.BOMB_SIZE/2)), 0)
@@ -353,4 +366,18 @@ class Game:
     def column(self, x, y, i):
         for ry in range(0,self.HEIGHT):
             self.trail_changes.append((x, ry, i))
-        
+    
+    def poison(self, x, y, i):
+        self.players[i].poisoned = self.POISON_TIME
+    
+    def new_bonus(self):
+        x, y = random.randint(0,self.WIDTH), random.randint(0,self.HEIGHT)
+        id = random.randint(0,len(self.bonus))
+        if (x, y) in self.bonus_list:
+            self.new_bonus()
+            return
+        for player in self.players:
+            if abs(player.x-x) < self.DISTANCE_MIN and abs(player.y-y) < self.DISTANCE_MIN:
+                self.new_bonus()
+                return
+        self.bonus_list[(x, y)] = id
