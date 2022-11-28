@@ -140,11 +140,16 @@ class Game:
         self.drool_textures = []
         for i in range(16):
             texture = pygame.image.load(os.path.join("assets","textures","drool",f"{i}.png"))
+            texture_poison = pygame.image.load(os.path.join("assets","textures","drool_poison",f"{i}.png"))
             texture = pygame.transform.scale(texture, [self.ts*2, self.ts*2])
+            texture_poison = pygame.transform.scale(texture_poison, [self.ts*2, self.ts*2])
             red, blue = texture.copy(), texture.copy()
+            redp, bluep = texture_poison.copy(), texture_poison.copy()
             red.fill(Player.TRAIL_COLORS[0]+(255,), None, pygame.BLEND_RGBA_MULT)
             blue.fill(Player.TRAIL_COLORS[1]+(255,), None, pygame.BLEND_RGBA_MULT)
-            self.drool_textures.append((red, blue))
+            redp.fill(Player.TRAIL_COLORS[0]+(255,), None, pygame.BLEND_RGBA_MULT)
+            bluep.fill(Player.TRAIL_COLORS[1]+(255,), None, pygame.BLEND_RGBA_MULT)
+            self.drool_textures.append((red, blue, redp, bluep))
         self.bonus_textures = []
         for b in ("bomb", "row", "column", "poison"):
             if b =="column":
