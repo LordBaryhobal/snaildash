@@ -147,9 +147,9 @@ class Game:
         self.bonus_textures = []
         for b in ("bomb", "row", "column"):
             if b =="column":
-                texture = pygame.transform.rotate(pygame.image.load(os.path.join("assets","textures","bonus","row.png"), 90))
+                texture = pygame.transform.rotate(pygame.image.load(os.path.join("assets","textures","bonus","row.png")), 90)
             else:
-                texture = pygame.image.load(os.path.join("assets","textures","bonus","{b}.png"))
+                texture = pygame.image.load(os.path.join("assets","textures","bonus",f"{b}.png"))
             texture = pygame.transform.scale(texture, [self.ts*2, self.ts*2])
             self.bonus_textures.append(texture)
     
