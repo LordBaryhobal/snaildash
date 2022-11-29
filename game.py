@@ -48,7 +48,6 @@ class Game:
         self.drool = np.zeros([self.HEIGHT, self.WIDTH], dtype="int8")-1
         self.bonus_list = {
         }
-        self.new_bonus()
 
     def loop(self):
         self.remaining = self.timer_start+self.TIMER - time.time()
@@ -87,7 +86,7 @@ class Game:
                     surf.blit(texture, [ox+(x-0.5)*self.ts, oy+(y-0.5)*self.ts])
         bonus_l = self.bonus_list.copy()
         for b in bonus_l:
-            b_id = self.bonus_list[b]
+            b_id = bonus_l[b]
             x, y = b
             surf.blit(self.bonus_textures[b_id], [ox + (x-0.5)*self.ts, oy + (y-0.5)*self.ts])
         
@@ -250,6 +249,10 @@ class Game:
                         p2.nx, p2.ny = p1.nx - dx, p1.ny - dy
                         p1.nx, p1.ny = p1.x, p1.y
                         self.collide()
+                    for cell in p2_cells:
+                        if cell in self.bonus_list:
+                            self.bonus[self.bonus_list[cell]](*cell, p2.i)
+                            self.bonus_list.pop(cell)
             else:
                 if p2.dir <=3:
                     dx, dy = Player.OFFSETS[p1.dir%4]
@@ -258,6 +261,10 @@ class Game:
                         p1.nx, p1.ny = p2.nx - dx, p2.ny - dy
                         p2.nx, p2.ny = p2.x, p2.y
                         self.collide()
+                    for cell in p1_cells:
+                        if cell in self.bonus_list:
+                            self.bonus[self.bonus_list[cell]](*cell, p1.i)
+                            self.bonus_list.pop(cell)
                 else:
                     #double dash
                     dx_1, dy_1 = Player.OFFSETS[p1.dir%4]
@@ -265,6 +272,12 @@ class Game:
                     for i in range(1, Player.DASH_SIZE):
                         cx1, cy1 = p1.x + dx_1*i, p1.y + dy_1*i
                         cx2, cy2 = p2.x + dx_2*i, p2.y + dy_2*i
+                        if (cx1, cy1) in self.bonus_list:
+                            self.bonus[self.bonus_list[(cx1, cy1)]](cx1, cy1, p1.i)
+                            self.bonus_list.pop((cx1, cy1))
+                        if (cx2, cy2) in self.bonus_list:
+                            self.bonus[self.bonus_list[(cx2, cy2)]](cx2, cy2, p2.i)
+                            self.bonus_list.pop((cx2, cy2))
                         if (cx1, cy1) == (cx2, cy2):
                             p1.nx, p1.ny = cx1 -dx_1, cy1 -dy_1
                             p2.nx, p2.ny = cx2 -dx_2, cy2 -dy_2
