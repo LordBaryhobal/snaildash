@@ -115,7 +115,7 @@ class Game:
             pygame.draw.circle(surf, (255,255,255), [ox+(self.collide_pos[0]+0.5)*self.ts, oy+(self.collide_pos[1]+0.5)*self.ts], r, 3)
     
     def resize(self):
-        tile = pygame.image.load(os.path.join("assets","textures","tile.png"))
+        tile = pygame.image.load(os.path.join("assets","textures","grass2.png"))
         w, h = tile.get_size()
         self.tiles = pygame.Surface([self.WIDTH*w, self.HEIGHT*h])
         for y in range(self.HEIGHT):
