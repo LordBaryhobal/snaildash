@@ -85,10 +85,8 @@ class Game:
                     
                     surf.blit(texture, [ox+(x-0.5)*self.ts, oy+(y-0.5)*self.ts])
         bonus_l = self.bonus_list.copy()
-        for b in bonus_l:
-            b_id = bonus_l[b]
-            x, y = b
-            surf.blit(self.bonus_textures[b_id], [ox + (x-0.5)*self.ts, oy + (y-0.5)*self.ts])
+        for (x, y), i in bonus_l.items():
+            surf.blit(self.bonus_textures[i], [ox + (x-0.5)*self.ts, oy + (y-0.5)*self.ts])
         
         r = 1-max(0,self.remaining)/self.TIMER
         r = max(0, min(1, r))
@@ -109,28 +107,6 @@ class Game:
         w6 = w3/2
         w = W*remaining/self.DURATION
         pygame.draw.rect(surf, (255,255,255), [w6, surf.get_height()-10, w, 10])
-        
-        red = np.count_nonzero(self.trails == 0)
-        blue = np.count_nonzero(self.trails == 1)
-        full = self.WIDTH * self.HEIGHT
-        redW = W*red/full
-        blueW = W*blue/full
-        
-        h24 = h3/8
-        w20 = W/20
-        
-        a = [w6+w20,   h24]
-        b = [w6+W+w20, h24]
-        c = [w6+W-w20, h24*2]
-        d = [w6-w20,   h24*2]
-        
-        red_e  = [w6+w20+redW,    h24]
-        blue_e = [w6+W+w20-blueW, h24]
-        red_f  = [w6-w20+redW,    h24*2]
-        blue_f = [w6+W-w20-blueW, h24*2]
-        
-        pygame.draw.polygon(surf, Player.COLORS[0], [a,red_e,red_f,d])
-        pygame.draw.polygon(surf, Player.COLORS[1], [blue_e,b,c,blue_f])
         
         rem = self.collide_start+self.COLLIDE_DURATION-cur_time
         if rem > 0:
@@ -343,11 +319,6 @@ class Game:
         ds2 = self.players[1].dashscore
         
         if self.manager.is_host:
-            trails = []
-            for x, y, i in self.trail_changes:
-                trails.append(f"{x}|{y}|{i}")
-            
-            trails = "/".join(trails)
             msg = b"turnEndHost" + struct.pack(">BBBBBBBBBBBB", x1,y1,d1,s1,ds1,x2,y2,d2,s2,ds2,len(self.trail_changes),len(self.bonus_list))
             for x, y, i in self.trail_changes:
                 msg += struct.pack(">BBB", x,y,i)
