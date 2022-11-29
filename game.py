@@ -216,10 +216,9 @@ class Game:
                             tx, ty = x+dx*i, y+dy*i
                             if 0 <= tx < self.WIDTH and 0 <= ty < self.HEIGHT:
                                 t = player.i
-                                    if player.poisoned > 0:
+                                if player.poisoned > 0:
                                     t += 2
                                 self.set_trail(tx, ty, t)
-                                    else:
                         t = player.i
                         if player.poisoned > 0:
                             t += 2
