@@ -171,19 +171,18 @@ class Game:
     
     def handle_key(self, event):
         ndir = self.player.dir%4
-        if event.key == pygame.K_w:
+        if event.key == pygame.K_w or event.key == pygame.K_UP:
             ndir = 3
         
-        elif event.key == pygame.K_s:
+        elif event.key == pygame.K_s or event.key == pygame.K_DOWN:
             ndir = 1
         
-        elif event.key == pygame.K_a:
+        elif event.key == pygame.K_a or event.key == pygame.K_LEFT:
             ndir = 2
         
-        elif event.key == pygame.K_d:
+        elif event.key == pygame.K_d or event.key == pygame.K_RIGHT:
             ndir = 0
-        
-        if (event.mod & pygame.KMOD_LSHIFT and self.player.candash()) or self.player.dash:
+        if ((event.mod & pygame.KMOD_LSHIFT or event.key == pygame.K_SPACE) and self.player.candash()) or self.player.dash:
             if not self.player.dash:
                 self.player.dash = True
                 self.player.usedash()
