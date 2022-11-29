@@ -48,6 +48,7 @@ class Game:
         self.drool = np.zeros([self.HEIGHT, self.WIDTH], dtype="int8")-1
         self.bonus_list = {
         }
+        self.new_bonus()
 
     def loop(self):
         self.remaining = self.timer_start+self.TIMER - time.time()
@@ -151,7 +152,7 @@ class Game:
             bluep.fill(Player.TRAIL_COLORS[1]+(255,), None, pygame.BLEND_RGBA_MULT)
             self.drool_textures.append((red, blue, redp, bluep))
         self.bonus_textures = []
-        for b in ("bomb", "row", "column", "poison"):
+        for b in ("bomb2", "row", "column", "poison"):
             if b =="column":
                 texture = pygame.transform.rotate(pygame.image.load(os.path.join("assets","textures","bonus","row.png")), 90)
             else:
