@@ -215,16 +215,15 @@ class Game:
                         for i in range(Player.DASH_SIZE):
                             tx, ty = x+dx*i, y+dy*i
                             if 0 <= tx < self.WIDTH and 0 <= ty < self.HEIGHT:
-                                if self.trails[ty, tx] != player.i:
+                                t = player.i
                                     if player.poisoned > 0:
-                                        self.trail_changes.append((tx, ty, player.i + 2))
+                                    t += 2
+                                self.set_trail(tx, ty, t)
                                     else:
-                                        self.trail_changes.append((tx, ty, player.i))
-                    elif self.trails[y, x] != player.i:
+                        t = player.i
                         if player.poisoned > 0:
-                            self.trail_changes.append((x,y,player.i + 2))
-                        else:
-                            self.trail_changes.append((x, y, player.i))
+                            t += 2
+                        self.set_trail(x, y, t)
 
             p1, p2 = self.players
             if p1.dir <=3:
@@ -360,31 +359,31 @@ class Game:
         y1, y2 = max(0, min(self.HEIGHT-1, y1)), max(0, min(self.HEIGHT-1, y2))
         for y in range(y1, y2+1):
             for x in range(x1, x2+1):
-                self.trail_changes.append((x, y, 255))
+                self.set_trail(x,y,255)
             
     def bomb(self, x, y, i):
         sx, sy = max(ceil(x-(self.BOMB_SIZE/2)),0), max(ceil(y-(self.BOMB_SIZE/2)), 0)
         esx, esy = min(floor(x + self.BOMB_SIZE/2), self.WIDTH-1)+1, min(floor(y + self.BOMB_SIZE/2), self.HEIGHT-1)+1
         for by in range(sy, esy):
             for bx in range(sx, esx):
+                t = i
                 if self.players[i].poisoned > 0:
-                    self.trail_changes.append((bx, by, i+2))
-                else:
-                    self.trail_changes.append((bx, by, i))
+                    t += 2
+                self.set_trail(bx, by, t)
     
     def row(self, x, y, i):
         for rx in range(0,self.WIDTH):
+            t = i
             if self.players[i].poisoned > 0:
-                self.trail_changes.append((rx, y, i+2))
-            else:
-                self.trail_changes.append((rx, y, i))
+                t += 2
+            self.set_trail(rx, y, t)
         
     def column(self, x, y, i):
         for ry in range(0,self.HEIGHT):
+            t = i
             if self.players[i].poisoned > 0:
-                self.trail_changes.append((x, ry, i+2))
-            else:
-                self.trail_changes.append((x, ry, i))
+                t += 2
+            self.set_trail(x, ry, t)
     
     def poison(self, x, y, i):
         self.players[i].poisoned = self.POISON_TIME
@@ -400,3 +399,14 @@ class Game:
                 self.new_bonus()
                 return
         self.bonus_list[(x, y)] = id
+    
+    def set_trail(self, x, y, i):
+        if i != -1 and i != 255:
+            cur = self.trails[y,x]
+            if i == cur: return
+            if i%2 == cur%2:
+                if i < cur: return
+            elif cur > 1:
+                i = cur-2
+        
+        self.trail_changes.append((x,y,i))
