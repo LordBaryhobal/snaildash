@@ -75,6 +75,8 @@ class Game:
         
         ox, oy = surf.get_width()/2 - self.WIDTH/2*self.ts, surf.get_height()/2 - self.HEIGHT/2*self.ts
 
+        surf.blit(self.tiles, [ox, oy])
+
         for y in range(self.HEIGHT):
             for x in range(self.WIDTH):
                 t = self.trails[y, x]
@@ -138,6 +140,14 @@ class Game:
             pygame.draw.circle(surf, (255,255,255), [ox+(self.collide_pos[0]+0.5)*self.ts, oy+(self.collide_pos[1]+0.5)*self.ts], r, 3)
     
     def resize(self):
+        tile = pygame.image.load(os.path.join("assets","textures","tile.png"))
+        w, h = tile.get_size()
+        self.tiles = pygame.Surface([self.WIDTH*w, self.HEIGHT*h])
+        for y in range(self.HEIGHT):
+            for x in range(self.WIDTH):
+                self.tiles.blit(tile, [x*w, y*h])
+        self.tiles = pygame.transform.scale(self.tiles, [self.WIDTH*self.ts, self.HEIGHT*self.ts])
+
         self.drool_textures = []
         for i in range(16):
             texture = pygame.image.load(os.path.join("assets","textures","drool",f"{i}.png"))
@@ -220,6 +230,7 @@ class Game:
                                 if player.poisoned > 0:
                                     t += 2
                                 self.set_trail(tx, ty, t)
+                    else:
                         t = player.i
                         if player.poisoned > 0:
                             t += 2
