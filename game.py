@@ -12,7 +12,7 @@ class Game:
     WIDTH = 15
     HEIGHT = 15
     TIMER = 0.25
-    DURATION = 60
+    DURATION = 90
     COLLIDE_DURATION = 1
     COLLIDE_RADIUS = 4
     BOMB_SIZE = 5
@@ -201,9 +201,6 @@ class Game:
             player.dir %= 4
             player.dash = False
             player.poisoned = max(player.poisoned-1, 0)
-        
-        if random.random() < 0.25:
-            pygame.event.post(pygame.event.Event(pygame.USEREVENT+1))
     
     def end_turn(self):
         if self.manager.is_host:

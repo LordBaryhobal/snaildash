@@ -156,16 +156,12 @@ class Manager:
             
             elif event.type == pygame.USEREVENT:
                 self.game.start_turn()
-            
-            elif event.type == pygame.USEREVENT+1:
-                sound = random.choice(self.squish_sounds)
-                if self.is_host:
-                    sound.play()
         
         if self.stage == Stage.COUNTDOWN:
             rem = self.countdown_start+self.COUNTDOWN-time.time()
             if rem <= 0:
                 self.stage = Stage.IN_GAME
+                #pygame.mixer.music.play()
                 self.game.start_time = time.time()
                 self.game.start_turn()
 
@@ -418,12 +414,9 @@ class Manager:
                     pygame.event.post(pygame.event.Event(pygame.USEREVENT))
     
     def load_sounds(self):
-        self.squish_sounds = []
-        for i in range(8):
-            sound = pygame.mixer.Sound(os.path.join("assets","sounds","squish",f"{i}.wav"))
-            self.squish_sounds.append(sound)
-        
         self.click_sound = pygame.mixer.Sound(os.path.join("assets","sounds","click.wav"))
+        pygame.mixer.music.load(os.path.join("assets","musics","game.mp3"))
+        pygame.mixer.music.set_volume(0.6)
 
 if __name__ == "__main__":
     pygame.init()
