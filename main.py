@@ -240,8 +240,8 @@ class Manager:
         r_end = 1-r_end/self.BREAKDOWN_BAR_END_DUR
         r_bar = max(0, min(1, r_bar))
         
-        red = np.count_nonzero(self.game.trails == 0)
-        blue = np.count_nonzero(self.game.trails == 1)
+        red = np.count_nonzero(self.game.trails in (0,2))
+        blue = np.count_nonzero(self.game.trails in (1,3))
         full = self.game.WIDTH * self.game.HEIGHT
         pct_red = red/full*100
         pct_blue = blue/full*100
@@ -293,8 +293,8 @@ class Manager:
         surf.fill(0)
         
         # Bar
-        red = np.count_nonzero(self.game.trails == 0)
-        blue = np.count_nonzero(self.game.trails == 1)
+        red = np.count_nonzero(self.game.trails in (0,2))
+        blue = np.count_nonzero(self.game.trails in (1,3))
         full = self.game.WIDTH * self.game.HEIGHT
         pct_red = red/full*100
         pct_blue = blue/full*100
