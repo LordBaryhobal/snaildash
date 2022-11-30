@@ -415,7 +415,7 @@ class Manager:
     
     def load_sounds(self):
         self.click_sound = pygame.mixer.Sound(os.path.join("assets","sounds","click.wav"))
-        pygame.mixer.music.load(os.path.join("assets","musics","game.mp3"))
+        pygame.mixer.music.load(os.path.join("assets","musics","game.wav"))
         pygame.mixer.music.set_volume(0.6)
 
 if __name__ == "__main__":
