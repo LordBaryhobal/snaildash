@@ -42,3 +42,4 @@ class Player:
         
     def usedash(self):
         self.dashscore -= 2
+        self.game.manager.bonus_scores[2][self.i+1] += 1

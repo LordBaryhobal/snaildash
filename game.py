@@ -282,6 +282,11 @@ class Game:
             
             if len(self.bonus_list) < self.MAX_BONUS and random.random() < self.BONUS_CHANCE:
                 self.new_bonus()
+            
+            red = np.count_nonzero(self.trails == 0) + np.count_nonzero(self.trails == 2)
+            blue = np.count_nonzero(self.trails == 1) + np.count_nonzero(self.trails == 3)
+            self.manager.bonus_scores[0][1] = red
+            self.manager.bonus_scores[0][2] = blue
 
             self.send_sync()
             pygame.event.post(pygame.event.Event(pygame.USEREVENT))
@@ -366,8 +371,12 @@ class Game:
         for y in range(y1, y2+1):
             for x in range(x1, x2+1):
                 self.set_trail(x,y,255)
-            
+    
+    def use_bonus(self, i):
+        self.manager.bonus_scores[3][i+1] += 1
+    
     def bomb(self, x, y, i):
+        self.use_bonus(i)
         sx, sy = max(ceil(x-(self.BOMB_SIZE/2)),0), max(ceil(y-(self.BOMB_SIZE/2)), 0)
         esx, esy = min(floor(x + self.BOMB_SIZE/2), self.WIDTH-1)+1, min(floor(y + self.BOMB_SIZE/2), self.HEIGHT-1)+1
         for by in range(sy, esy):
@@ -378,6 +387,7 @@ class Game:
                 self.set_trail(bx, by, t)
     
     def row(self, x, y, i):
+        self.use_bonus(i)
         for rx in range(0,self.WIDTH):
             t = i
             if self.players[i].poisoned > 0:
@@ -385,6 +395,7 @@ class Game:
             self.set_trail(rx, y, t)
         
     def column(self, x, y, i):
+        self.use_bonus(i)
         for ry in range(0,self.HEIGHT):
             t = i
             if self.players[i].poisoned > 0:
@@ -392,6 +403,7 @@ class Game:
             self.set_trail(x, ry, t)
     
     def poison(self, x, y, i):
+        self.use_bonus(i)
         self.players[i].poisoned = self.POISON_TIME
     
     def new_bonus(self):
@@ -416,5 +428,5 @@ class Game:
                 i = cur-2
         
         if i > 1:
-            self.manager.bonus_scores[0][i%2 + 1] += 1
+            self.manager.bonus_scores[1][i%2 + 1] += 1
         self.trail_changes.append((x,y,i))

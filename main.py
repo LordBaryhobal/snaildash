@@ -166,7 +166,10 @@ class Manager:
                 self.stage = Stage.IN_GAME
                 #pygame.mixer.music.play()
                 self.bonus_scores = [
-                    ["Bave renforcée", 0, 0]
+                    ["Zone couverte", 0, 0],
+                    ["Bave renforcée", 0, 0],
+                    ["Dash", 0, 0],
+                    ["Bonus", 0, 0]
                 ]
                 self.game.start_time = self.time()
                 self.game.start_turn()
