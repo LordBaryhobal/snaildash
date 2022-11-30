@@ -269,7 +269,7 @@ class Game:
                             break
             
             for player in self.players:
-                if self.trails[player.ny, player.nx] == player.i:
+                if self.trails[player.ny, player.nx] == player.i or self.trails[player.ny, player.nx] == player.i+2:
                     player.add_dashscore()
                 pos = (player.nx, player.ny)
                 if pos in self.bonus_list:
