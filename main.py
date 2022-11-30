@@ -44,6 +44,7 @@ class Manager:
         self.bonus_scores = []
         self.home_btn_rect = None
         self.home_btn_pressed = False
+        self.finished_breakdown = False
         
         self.load_sounds()
         
@@ -130,10 +131,11 @@ class Manager:
                 
                 elif self.stage == Stage.BREAKDOWN_BONUSES:
                     if event.button == 1:
-                        r = self.home_btn_rect
-                        if r:
-                            if r[0] <= x < r[0]+r[2] and r[1] <= y < r[1]+r[3]:
-                                self.home_btn_pressed = True
+                        if self.finished_breakdown:
+                            r = self.home_btn_rect
+                            if r:
+                                if r[0] <= x < r[0]+r[2] and r[1] <= y < r[1]+r[3]:
+                                    self.home_btn_pressed = True
             
             elif event.type == pygame.MOUSEBUTTONUP:
                 x, y = event.pos
@@ -149,13 +151,14 @@ class Manager:
                 
                 elif self.stage == Stage.BREAKDOWN_BONUSES:
                     if event.button == 1:
-                        r = self.home_btn_rect
-                        if r:
-                            if r[0] <= x < r[0]+r[2] and r[1] <= y < r[1]+r[3]:
-                                if self.home_btn_pressed:
-                                    self.click_sound.play()
-                                    self.home_btn_pressed = False
-                                    self.stage = Stage.MAIN_MENU
+                        if self.finished_breakdown:
+                            r = self.home_btn_rect
+                            if r:
+                                if r[0] <= x < r[0]+r[2] and r[1] <= y < r[1]+r[3]:
+                                    if self.home_btn_pressed:
+                                        self.click_sound.play()
+                                        self.home_btn_pressed = False
+                                        self.stage = Stage.MAIN_MENU
             
             elif event.type == pygame.USEREVENT:
                 self.game.start_turn()
@@ -197,6 +200,7 @@ class Manager:
             rem = self.breakdown_start+self.BREAKDOWN_BAR_DUR-self.time()
             if rem <= 0:
                 self.stage = Stage.BREAKDOWN_BONUSES
+                self.finished_breakdown = False
                 self.breakdown_start = self.time()
 
     def render_menu(self, surf):
@@ -361,6 +365,7 @@ class Manager:
                 pygame.draw.circle(surf, Player.COLORS[1], [x2, y], (x2-x1)/16, 2)
         
         if step > len(self.bonus_scores):
+            self.finished_breakdown = True
             txt = self.font.render("Menu principal", True, (0,0,0))
             w, h = txt.get_size()
             tx, ty = surf.get_width()/2-w/2, surf.get_height()-75-h/2
