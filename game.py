@@ -103,16 +103,18 @@ class Game:
                     pygame.draw.line(surf, (0,255,0), [ox+X*self.ts, oy+(Y+1)*self.ts], [ox+(X+1)*self.ts, oy+Y*self.ts])
         
         remaining = self.start_time+self.DURATION - cur_time
+        if self.start_time == 0: remaining = self.DURATION
         W = 2*w3
         w6 = w3/2
-        w = W*remaining/self.DURATION
+        w = W * max(0, min(1, remaining/self.DURATION))
         pygame.draw.rect(surf, (255,255,255), [w6, surf.get_height()-10, w, 10])
         
-        rem = self.collide_start+self.COLLIDE_DURATION-cur_time
-        if rem > 0:
-            r = 1-rem/self.COLLIDE_DURATION
-            r = self.COLLIDE_RADIUS*r*self.ts
-            pygame.draw.circle(surf, (255,255,255), [ox+(self.collide_pos[0]+0.5)*self.ts, oy+(self.collide_pos[1]+0.5)*self.ts], r, 3)
+        if self.collide_start != 0:
+            rem = self.collide_start+self.COLLIDE_DURATION-cur_time
+            if rem > 0:
+                r = 1-rem/self.COLLIDE_DURATION
+                r = self.COLLIDE_RADIUS*r*self.ts
+                pygame.draw.circle(surf, (255,255,255), [ox+(self.collide_pos[0]+0.5)*self.ts, oy+(self.collide_pos[1]+0.5)*self.ts], r, 3)
     
     def resize(self):
         tile = pygame.image.load(os.path.join("assets","textures","grass2.png"))

@@ -167,11 +167,12 @@ class Manager:
             if rem <= 0:
                 self.stage = Stage.IN_GAME
                 #pygame.mixer.music.play()
+                self.game.start_time = self.time()
                 self.game.start_turn()
 
         elif self.stage == Stage.IN_GAME:
             self.game.loop()
-            rem = self.game.DURATION+self.COUNTDOWN-self.time()
+            rem = self.game.start_time+self.game.DURATION-self.time()
             if rem <= 0:
                 self.stage = Stage.GAME_TO_BREAKDOWN
                 self.breakdown_start = self.time()
