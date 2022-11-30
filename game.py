@@ -115,6 +115,9 @@ class Game:
                 r = 1-rem/self.COLLIDE_DURATION
                 r = self.COLLIDE_RADIUS*r*self.ts
                 pygame.draw.circle(surf, (255,255,255), [ox+(self.collide_pos[0]+0.5)*self.ts, oy+(self.collide_pos[1]+0.5)*self.ts], r, 3)
+        
+        ds_texture = self.dashscore_textures[min(Player.MAX_DASHSCORE, self.player.dashscore)]
+        surf.blit(ds_texture, [ox-ds_texture.get_width()-self.ts, surf.get_height()/2-ds_texture.get_height()/2])
     
     def resize(self):
         tile = pygame.image.load(os.path.join("assets","textures","grass2.png"))
@@ -146,6 +149,13 @@ class Game:
                 texture = pygame.image.load(os.path.join("assets","textures","bonus",f"{b}.png"))
             texture = pygame.transform.scale(texture, [self.ts*2, self.ts*2])
             self.bonus_textures.append(texture)
+        
+        self.dashscore_textures = []
+        for i in range(5):
+            texture = pygame.image.load(os.path.join("assets","textures","dash_score_bar",f"{i}.png"))
+            texture = pygame.transform.scale(texture, [self.ts*2, self.ts*8])
+            texture.fill(Player.COLORS[self.player.i]+(255,), None, pygame.BLEND_RGBA_MULT)
+            self.dashscore_textures.append(texture)
     
     def handle_key(self, event):
         ndir = self.player.dir%4
