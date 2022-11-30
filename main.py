@@ -41,9 +41,7 @@ class Manager:
         self.is_host = False
         self.countdown_start = 0
         self.breakdown_start = 0
-        self.bonus_scores = [
-            ["Bave renforcée", 0, 0]
-        ]
+        self.bonus_scores = []
         self.home_btn_rect = None
         self.home_btn_pressed = False
         
@@ -167,6 +165,9 @@ class Manager:
             if rem <= 0:
                 self.stage = Stage.IN_GAME
                 #pygame.mixer.music.play()
+                self.bonus_scores = [
+                    ["Bave renforcée", 0, 0]
+                ]
                 self.game.start_time = self.time()
                 self.game.start_turn()
 
@@ -399,7 +400,12 @@ class Manager:
                         bonus_list[(x, y)] = i
                     
                     data = data[3*bonus_count:]
-                    col_start, col_x, col_y = struct.unpack(">dBB", data)
+                    col_start, col_x, col_y, bonus_scores_count = struct.unpack(">dBBB", data[:11])
+                    data = data[11:]
+                    for i in range(bonus_scores_count):
+                        r, b = struct.unpack(">BB", data[2*i:2*i+2])
+                        self.bonus_scores[i][1] = r
+                        self.bonus_scores[i][2] = b
                 
                 else:
                     x1, y1, d1, s1, ds1, x2, y2, d2, s2, ds2 = struct.unpack(">BBBBBBBBBB", data[7:])
