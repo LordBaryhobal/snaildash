@@ -41,7 +41,9 @@ class Manager:
         self.is_host = False
         self.countdown_start = 0
         self.breakdown_start = 0
-        self.bonus_scores = []
+        self.bonus_scores = [
+            ["Bave renforcée", 0, 0]
+        ]
         self.home_btn_rect = None
         self.home_btn_pressed = False
         
@@ -70,6 +72,9 @@ class Manager:
         self.sh.running = False
         self.sh.socket.close()
         self.stage = Stage.STOP
+    
+    def time(self):
+        return time.time()-self.time_origin
     
     def render(self, surf):
         if self.stage == Stage.MAIN_MENU:
@@ -162,15 +167,14 @@ class Manager:
             if rem <= 0:
                 self.stage = Stage.IN_GAME
                 #pygame.mixer.music.play()
-                self.game.start_time = time.time()
                 self.game.start_turn()
 
         elif self.stage == Stage.IN_GAME:
             self.game.loop()
-            rem = self.game.start_time+self.game.DURATION-time.time()
+            rem = self.game.DURATION-self.time()
             if rem <= 0:
                 self.stage = Stage.GAME_TO_BREAKDOWN
-                self.breakdown_start = time.time()
+                self.breakdown_start = self.time()
                 p1, p2 = self.game.players
                 ts = self.game.ts
                 ox, oy = win.get_width()/2 - self.game.WIDTH/2*ts, win.get_height()/2 - self.game.HEIGHT/2*ts
@@ -179,21 +183,16 @@ class Manager:
                 self.p1Pe, self.p2Pe = [ox, oy], [ox+self.game.WIDTH*ts, oy]
         
         elif self.stage == Stage.GAME_TO_BREAKDOWN:
-            rem = self.breakdown_start+self.BREAKDOWN_IN_DUR-time.time()
+            rem = self.breakdown_start+self.BREAKDOWN_IN_DUR-self.time()
             if rem <= 0:
                 self.stage = Stage.BREAKDOWN_BAR
-                self.breakdown_start = time.time()
+                self.breakdown_start = self.time()
         
         elif self.stage == Stage.BREAKDOWN_BAR:
-            rem = self.breakdown_start+self.BREAKDOWN_BAR_DUR-time.time()
+            rem = self.breakdown_start+self.BREAKDOWN_BAR_DUR-self.time()
             if rem <= 0:
                 self.stage = Stage.BREAKDOWN_BONUSES
-                self.breakdown_start = time.time()
-                self.bonus_scores = [
-                    ("Test 1", 13, 42),
-                    ("Test 2", 83, 23),
-                    ("Essai 3", 4085, 384)
-                ]
+                self.breakdown_start = self.time()
 
     def render_menu(self, surf):
         surf.fill(0)
@@ -217,7 +216,7 @@ class Manager:
     def render_breakdown_transition(self, surf):
         self.game.render(surf, False)
         fade = pygame.Surface(surf.get_size(), pygame.SRCALPHA)
-        t = time.time()
+        t = self.time()
         r = self.breakdown_start+self.BREAKDOWN_IN_DUR-t
         r = 1-r/self.BREAKDOWN_IN_DUR
         r = max(0, min(1, r))
@@ -232,7 +231,7 @@ class Manager:
     def render_breakdown_bar(self, surf):
         surf.fill(0)
         
-        t = time.time()
+        t = self.time()
         
         r_bar = self.breakdown_start+self.BREAKDOWN_BAR_DUR-self.BREAKDOWN_BAR_PAUSE-self.BREAKDOWN_BAR_END_DUR-t
         r_end = self.breakdown_start+self.BREAKDOWN_BAR_DUR-t
@@ -240,8 +239,8 @@ class Manager:
         r_end = 1-r_end/self.BREAKDOWN_BAR_END_DUR
         r_bar = max(0, min(1, r_bar))
         
-        red = np.count_nonzero(self.game.trails in (0,2))
-        blue = np.count_nonzero(self.game.trails in (1,3))
+        red = np.count_nonzero(self.game.trails == 0) + np.count_nonzero(self.game.trails == 2)
+        blue = np.count_nonzero(self.game.trails == 1) + np.count_nonzero(self.game.trails == 3)
         full = self.game.WIDTH * self.game.HEIGHT
         pct_red = red/full*100
         pct_blue = blue/full*100
@@ -293,8 +292,8 @@ class Manager:
         surf.fill(0)
         
         # Bar
-        red = np.count_nonzero(self.game.trails in (0,2))
-        blue = np.count_nonzero(self.game.trails in (1,3))
+        red = np.count_nonzero(self.game.trails == 0) + np.count_nonzero(self.game.trails == 2)
+        blue = np.count_nonzero(self.game.trails == 1) + np.count_nonzero(self.game.trails == 3)
         full = self.game.WIDTH * self.game.HEIGHT
         pct_red = red/full*100
         pct_blue = blue/full*100
@@ -331,7 +330,7 @@ class Manager:
         surf.blit(txt, [ox+width/2-txt.get_width()/2, oy+bar_h/2-txt.get_height()/2])
         
         # Bonus scores
-        cur = time.time()
+        cur = self.time()
         step = int( (cur-self.breakdown_start)//self.BREAKDOWN_INTERVAL )
         x1, x2 = self.p1Pe[0], self.p2Pe[0]
         xm = (x1+x2)/2
@@ -367,6 +366,7 @@ class Manager:
         
         self.countdown_start = time.time()
         self.stage = Stage.COUNTDOWN
+        self.time_origin = time.time()
     
     def on_receive(self, data: bytes):
         if data == b"quit":

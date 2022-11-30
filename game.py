@@ -50,7 +50,7 @@ class Game:
         }
 
     def loop(self):
-        self.remaining = self.timer_start+self.TIMER - time.time()
+        self.remaining = self.timer_start+self.TIMER - self.manager.time()
         
         if self.remaining <= 0:
             if not self.player.synced:
@@ -59,7 +59,7 @@ class Game:
                     self.end_turn()
     
     def render(self, surf, render_players=True):
-        cur_time = time.time()
+        cur_time = self.manager.time()
         
         w3, h3 = surf.get_width()/3, surf.get_height()/3
         
@@ -167,7 +167,7 @@ class Game:
 
     
     def start_turn(self):
-        self.timer_start = time.time()
+        self.timer_start = self.manager.time()
         self.player.synced = False
         self.trail_changes = []
         for player in self.players:
@@ -340,7 +340,7 @@ class Game:
         
         ox, oy = (p1.x+p2.x)/2, (p1.y+p2.y)/2
         
-        self.collide_start = time.time()
+        self.collide_start = self.manager.time()
         self.collide_pos = [int(ox), int(oy)]
         
         x1, y1 = floor(ox-2), floor(oy-2)
@@ -400,4 +400,6 @@ class Game:
             elif cur > 1:
                 i = cur-2
         
+        if i > 1:
+            self.manager.bonus_scores[0][i%2 + 1] += 1
         self.trail_changes.append((x,y,i))
