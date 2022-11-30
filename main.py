@@ -171,7 +171,7 @@ class Manager:
 
         elif self.stage == Stage.IN_GAME:
             self.game.loop()
-            rem = self.game.DURATION-self.time()
+            rem = self.game.DURATION+self.COUNTDOWN-self.time()
             if rem <= 0:
                 self.stage = Stage.GAME_TO_BREAKDOWN
                 self.breakdown_start = self.time()
