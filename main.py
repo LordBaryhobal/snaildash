@@ -350,6 +350,12 @@ class Manager:
             surf.blit(txtRed, [x1-txtRed.get_width()/2, y-txtRed.get_height()/2])
             surf.blit(txtBlue, [x2-txtBlue.get_width()/2, y-txtBlue.get_height()/2])
             surf.blit(txtName, [xm-txtName.get_width()/2, y-txtName.get_height()/2])
+            
+            if red >= blue:
+                pygame.draw.circle(surf, Player.COLORS[0], [x1, y], (x2-x1)/16, 2)
+            
+            if blue >= red:
+                pygame.draw.circle(surf, Player.COLORS[1], [x2, y], (x2-x1)/16, 2)
         
         if step > len(self.bonus_scores):
             txt = self.font.render("Menu principal", True, (0,0,0))
