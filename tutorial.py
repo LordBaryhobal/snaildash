@@ -96,13 +96,13 @@ class Tutorial:
             
             ox = W/2-max_w/2
             if img:
-                ox = W6
                 align_img = section["align_img"]
                 img_ox = W-W6-img.get_width()
+                ox = img_ox - 20 - max_w
                 
                 if align_img == "left":
-                    ox = W-W6-max_w
                     img_ox = W6
+                    ox = img_ox + img.get_width() + 20
                 
                 surf.blit(img, [img_ox, oy+section_h/2-img.get_height()/2])
             
@@ -139,12 +139,14 @@ class Tutorial:
                 clicked = True
                 self.prev_pressed = False
                 self.slide = max(0, self.slide-1)
+                self.start_time = time.time()
         
         elif r3 and r3[0] <= x < r3[0]+r3[2] and r3[1] <= y < r3[1]+r3[3]:
             if self.next_pressed:
                 clicked = True
                 self.next_pressed = False
                 self.slide = min(len(self.slides)-1, self.slide+1)
+                self.start_time = time.time()
         
         if clicked:
             self.manager.click_sound.play()

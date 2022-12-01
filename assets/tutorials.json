@@ -57,7 +57,7 @@
             {
                 "text": [
                     "Ligne de bave:",
-                    "remplit une ligne ou colonne de bave."
+                    "Remplit une ligne ou colonne de bave."
                 ],
                 "anim": "row_col",
                 "align_img": "left"
@@ -65,7 +65,7 @@
             {
                 "text": [
                     "Bombe de bave:",
-	                "remplit un carré de bave."
+	                "Remplit un carré de bave."
                 ],
                 "anim": "bomb",
                 "align_img": "right"
