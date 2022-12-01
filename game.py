@@ -241,6 +241,7 @@ class Game:
                     
                     player.nx, player.ny = x2, y2
                     if player.dir > 3:
+                        self.manager.bonus_scores[2][player.i+1] += 1
                         dx, dy = Player.OFFSETS[player.dir%4]
                         for i in range(Player.DASH_SIZE):
                             tx, ty = x+dx*i, y+dy*i
