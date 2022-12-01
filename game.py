@@ -119,17 +119,11 @@ class Game:
             X, Y = lx+(x-lx)*r, ly+(y-ly)*r
             
             if render_players:
-                if player.i == 1:
-                    _ = 1.5-abs(1.5 - r*5)
-                    texture = self.snail[int(_)]
-                    shell = self.shell
-                    if player.dir % 4 != 0:
-                        texture = pygame.transform.rotate(texture, -(player.dir%4)*90)
-                        shell = pygame.transform.rotate(shell, -(player.dir%4)*90)
-                    surf.blit(texture, [ox+(X-0.5)*self.ts, oy+(Y-0.5)*self.ts])
-                    surf.blit(shell, [ox+(X-0.5)*self.ts, oy+(Y-0.5)*self.ts])
-                    continue
-                pygame.draw.circle(surf, Player.COLORS[player.i], [ox+(X+0.5)*self.ts, oy+(Y+0.5)*self.ts], self.ts/2)
+                _ = 4 - abs(r-0.5)*8
+                texture = self.snail[int(_)][player.i]
+                if player.dir % 4 != 3:
+                    texture = pygame.transform.rotate(texture, -((player.dir+1)%4)*90)
+                surf.blit(texture, [ox+(X-0.5)*self.ts, oy+(Y-0.5)*self.ts])
 
                 if player.stun_count != 0:
                     pygame.draw.line(surf, (0,255,0), [ox+X*self.ts, oy+Y*self.ts], [ox+(X+1)*self.ts, oy+(Y+1)*self.ts])
@@ -176,13 +170,12 @@ class Game:
             self.drool_textures.append((red, blue, redp, bluep))
         
         self.snail = []
-        for i in range(3):
-            texture = pygame.image.load(f"assets/textures/snail/{i}.png")
-            texture = pygame.transform.scale(texture, [self.ts*2, self.ts*2])
-            self.snail.append(texture)
-                
-        self.shell = pygame.image.load("assets/textures/snail/shell.png")
-        self.shell = pygame.transform.scale(self.shell, [self.ts*2, self.ts*2])
+        for i in range(5):
+            red = pygame.image.load(os.path.join("assets","textures","snail","red",f"{i}.png"))
+            blue = pygame.image.load(os.path.join("assets","textures","snail","blue",f"{i}.png"))
+            red = pygame.transform.scale(red, [self.ts*2, self.ts*2])
+            blue = pygame.transform.scale(blue, [self.ts*2, self.ts*2])
+            self.snail.append((red, blue))
             
         self.bonus_textures = []
         for b in ("bomb2", "row", "column", "poison"):
