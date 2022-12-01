@@ -7,6 +7,7 @@ from player import Player
 import numpy as np
 import random
 import os
+from tutorial import Tutorial
 
 WIDTH, HEIGHT = 600, 600
 
@@ -19,6 +20,7 @@ class Stage:
     GAME_TO_BREAKDOWN = 4
     BREAKDOWN_BAR = 5
     BREAKDOWN_BONUSES = 6
+    TUTORIAL = 7
 
 class Manager:
     COUNTDOWN = 4
@@ -38,6 +40,8 @@ class Manager:
         self.game = Game(self)
         self.play_btn_rect = [0,0,0,0]
         self.play_btn_pressed = False
+        self.tuto_btn_rect = [0,0,0,0]
+        self.tuto_btn_pressed = False
         self.is_host = False
         self.countdown_start = 0
         self.breakdown_start = 0
@@ -45,6 +49,8 @@ class Manager:
         self.home_btn_rect = None
         self.home_btn_pressed = False
         self.finished_breakdown = False
+        
+        self.tutorial = Tutorial(self, Stage)
         
         self.load_sounds()
         
@@ -108,6 +114,9 @@ class Manager:
         
         elif self.stage == Stage.BREAKDOWN_BONUSES:
             self.render_breakdown_bonuses(surf)
+        
+        elif self.stage == Stage.TUTORIAL:
+            self.tutorial.render(surf)
 
     def handle_events(self, events):
         for event in events:
@@ -126,8 +135,12 @@ class Manager:
                 if self.stage == Stage.MAIN_MENU:
                     if event.button == 1:
                         r = self.play_btn_rect
+                        r2 = self.tuto_btn_rect
                         if r[0] <= x < r[0]+r[2] and r[1] <= y < r[1]+r[3]:
                             self.play_btn_pressed = True
+                        
+                        elif r2[0] <= x < r2[0]+r2[2] and r2[1] <= y < r2[1]+r2[3]:
+                            self.tuto_btn_pressed = True
                 
                 elif self.stage == Stage.BREAKDOWN_BONUSES:
                     if event.button == 1:
@@ -136,18 +149,30 @@ class Manager:
                             if r:
                                 if r[0] <= x < r[0]+r[2] and r[1] <= y < r[1]+r[3]:
                                     self.home_btn_pressed = True
+                
+                elif self.stage == Stage.TUTORIAL:
+                    if event.button == 1:
+                        self.tutorial.mouse_down(x, y)
             
             elif event.type == pygame.MOUSEBUTTONUP:
                 x, y = event.pos
                 if self.stage == Stage.MAIN_MENU:
                     if event.button == 1:
                         r = self.play_btn_rect
+                        r2 = self.tuto_btn_rect
                         if r[0] <= x < r[0]+r[2] and r[1] <= y < r[1]+r[3]:
                             if self.play_btn_pressed:
                                 self.click_sound.play()
                                 self.play_btn_pressed = False
                                 self.sh.send(b"ready")
                                 self.stage = Stage.WAITING_OPPONENT
+                        
+                        elif r2[0] <= x < r2[0]+r2[2] and r2[1] <= y < r2[1]+r2[3]:
+                            if self.tuto_btn_pressed:
+                                self.click_sound.play()
+                                self.tuto_btn_pressed = False
+                                self.stage = Stage.TUTORIAL
+                                self.tutorial.start_time = time.time()
                 
                 elif self.stage == Stage.BREAKDOWN_BONUSES:
                     if event.button == 1:
@@ -159,6 +184,10 @@ class Manager:
                                         self.click_sound.play()
                                         self.home_btn_pressed = False
                                         self.stage = Stage.MAIN_MENU
+                
+                elif self.stage == Stage.TUTORIAL:
+                    if event.button == 1:
+                        self.tutorial.mouse_up(x, y)
             
             elif event.type == pygame.USEREVENT:
                 self.game.start_turn()
@@ -211,7 +240,14 @@ class Manager:
         tx, ty = surf.get_width()/2-w/2, surf.get_height()/2-h/2
         self.play_btn_rect = [tx-100, ty-10, w+200, h+20]
         pygame.draw.rect(surf, (133, 255, 255), self.play_btn_rect)
-        surf.blit(txt, [surf.get_width()/2-txt.get_width()/2, surf.get_height()/2-txt.get_height()/2])
+        surf.blit(txt, [tx, ty])
+        
+        txt = self.font.render("Tutoriel", True, (0,0,0))
+        w, h = txt.get_size()
+        tx, ty = surf.get_width()/2-w/2, ty+100
+        self.tuto_btn_rect = [tx-100, ty-10, w+200, h+20]
+        pygame.draw.rect(surf, (133, 255, 255), self.tuto_btn_rect)
+        surf.blit(txt, [tx, ty])
     
     def render_waiting(self, surf):
         t = time.time()

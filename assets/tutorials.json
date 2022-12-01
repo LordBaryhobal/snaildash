@@ -1,0 +1,110 @@
+[
+    {
+        "title": "But du jeu",
+        "sections": [
+            {
+                "text": [
+                    "Le but est simple, chaque joueur contrôle un escargot, laissant",
+                    "une traînée de bave derrière lui.",
+                    "Celui qui à la fin du temps imparti à couvert la plus grande zone gagne !",
+                    "",
+                    "Le temps restant est affiché par la barre blanche en-bas de l'écran."
+                ]
+            }
+        ]
+    },
+    {
+        "title": "Contrôles",
+        "sections": [
+            {
+                "text": [
+                    "L'escargot avance continuellement.",
+	                "Pour changer sa direction, utiliser les touches WASD ou ←↑↓→."
+                ],
+                "img": "keys.png",
+                "align_img": "left"
+            }
+        ]
+    },
+    {
+        "title": "Dash",
+        "sections": [
+            {
+                "text": [
+                    "En repassant sur la bave de sa couleur, l'escargot",
+                    "recharge (jusqu'à 4) son réservoir de dash (à gauche)"
+                ],
+                "anim": "dash_bar",
+                "align_img": "left"
+            },
+            {
+                "text": [
+	                "Un dash utilise 2 barres du réservoir et permet d'avancer de 3 cases d'un coup.",
+	                "Appuyer sur ESPACE ou SHIFT (MAJ) pour dasher."
+                ]
+            }
+        ]
+    },
+    {
+        "title": "Bonus",
+        "sections": [
+            {
+                "text": [
+                    "Des bonus apparaissent aléatoirement sur la grille.",
+                    "Pour les activer, il suffit de passer dessus."
+                ]
+            },
+            {
+                "text": [
+                    "Ligne de bave:",
+                    "remplit une ligne ou colonne de bave."
+                ],
+                "anim": "row_col",
+                "align_img": "left"
+            },
+            {
+                "text": [
+                    "Bombe de bave:",
+	                "remplit un carré de bave."
+                ],
+                "anim": "bomb",
+                "align_img": "right"
+            }
+        ]
+    },
+    {
+        "title": "Bonus",
+        "sections": [
+            {
+                "text": [
+                    "Potion magique:",
+	                "Rend la bave produite plus résistante pour les 3 prochains déplacement.",
+                    "L'adversaire doit passer 2 fois sur la bave résistante pour la couvrir."
+                ],
+                "anim": "poison",
+                "align_img": "left"
+            },
+            {
+                "text": [
+                    "Combinaison de bonus:",
+                    "La potion magique peut être combinée avec les autres bonus."
+                ],
+                "anim": "combine",
+                "align_img": "right"
+            }
+        ]
+    },
+    {
+        "title": "Collision",
+        "sections": [
+            {
+                "text": [
+                    "Lorsque les 2 joueurs entrent en collision,",
+                    "une onde de choc retire la bave aux alentours."
+                ],
+                "anim": "collision",
+                "align_img": "right"
+            }
+        ]
+    }
+]
