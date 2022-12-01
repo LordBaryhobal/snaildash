@@ -32,7 +32,8 @@ class Player:
         self.synced = False
         self.dashscore = 0
         self.dash = False
-        
+        self.poisoned = 0
+
     def candash(self):
         return self.dashscore >= self.DASH_COST
         
@@ -41,3 +42,4 @@ class Player:
         
     def usedash(self):
         self.dashscore -= 2
+        self.game.manager.bonus_scores[2][self.i+1] += 1

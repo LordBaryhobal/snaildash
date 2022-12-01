@@ -1,9 +1,10 @@
 import numpy as np
 import pygame
 import time
-from math import floor, ceil
+from math import floor, ceil, radians, sin, cos
 import struct
 import random
+import os
 
 from player import Player
 
@@ -11,28 +12,28 @@ class Game:
     WIDTH = 15
     HEIGHT = 15
     TIMER = 0.25
-    DURATION = 60
+    DURATION = 90
     COLLIDE_DURATION = 1
     COLLIDE_RADIUS = 4
+    BOMB_SIZE = 5
+    DISTANCE_MIN = 4
+    MAX_BONUS = 4
+    BONUS_CHANCE = 0.2
+    POISON_TIME = 4
 
     def __init__(self, manager):
         self.manager = manager
-        self.trails = np.zeros([self.HEIGHT, self.WIDTH], dtype="int8")-1
         self.players = [
             Player(self, 0, 0, 0),
             Player(self, 1, self.WIDTH-1, self.HEIGHT-1)
         ]
         self.font = pygame.font.SysFont("arial", 30)
+        self.bonus = [self.bomb, self.row, self.column, self.poison]
         self.player = self.players[0]
         self.timer_start = 0
         self.start_time = 0
-        self.collide_start = 0
-        self.collide_pos = [0,0]
-        self.trail_changes = []
-        self.remaining = self.TIMER
-
-        self.drool = np.zeros([self.HEIGHT, self.WIDTH], dtype="int8")-1
         self.ts = 1
+        self.reset()
 
     def reset(self):
         self.trails = np.zeros([self.HEIGHT, self.WIDTH], dtype="int8")-1
@@ -45,9 +46,20 @@ class Game:
         self.remaining = self.TIMER
 
         self.drool = np.zeros([self.HEIGHT, self.WIDTH], dtype="int8")-1
+        self.bonus_list = {
+        }
+
+        self.stars = []
+        a = radians(random.randint(0,359))
+        self.star_vx = cos(a)*0.005
+        self.star_vy = sin(a)*0.005
+        for i in range(200):
+            x, y = random.random(), random.random()
+            f = random.random()/2+0.5
+            self.stars.append([x,y,f])
 
     def loop(self):
-        self.remaining = self.timer_start+self.TIMER - time.time()
+        self.remaining = self.timer_start+self.TIMER - self.manager.time()
         
         if self.remaining <= 0:
             if not self.player.synced:
@@ -56,7 +68,7 @@ class Game:
                     self.end_turn()
     
     def render(self, surf, render_players=True):
-        cur_time = time.time()
+        cur_time = self.manager.time()
         
         w3, h3 = surf.get_width()/3, surf.get_height()/3
         
@@ -71,6 +83,22 @@ class Game:
         
         ox, oy = surf.get_width()/2 - self.WIDTH/2*self.ts, surf.get_height()/2 - self.HEIGHT/2*self.ts
 
+        for i, [x, y, f] in enumerate(self.stars):
+            col = int(200*f)
+            pygame.draw.circle(surf, (col, col, col), [x*surf.get_width(), y*surf.get_height()], f*4)
+            x, y = x+self.star_vx*f, y+self.star_vy*f
+            x %= 1
+            y %= 1
+            self.stars[i] = [x, y, f]
+
+        pygame.draw.rect(surf, (0,0,0), [ox, oy, self.WIDTH*self.ts, self.HEIGHT*self.ts])
+        #surf.blit(self.tiles, [ox, oy])
+        for y in range(self.HEIGHT+1):
+            pygame.draw.line(surf, (150,150,150), [ox, oy+y*self.ts], [ox+self.WIDTH*self.ts, oy+y*self.ts])
+        
+        for x in range(self.WIDTH+1):
+            pygame.draw.line(surf, (150,150,150), [ox+x*self.ts, oy], [ox+x*self.ts, oy+self.HEIGHT*self.ts])
+
         for y in range(self.HEIGHT):
             for x in range(self.WIDTH):
                 t = self.trails[y, x]
@@ -79,6 +107,9 @@ class Game:
                     texture = self.drool_textures[drool_i][t]
                     
                     surf.blit(texture, [ox+(x-0.5)*self.ts, oy+(y-0.5)*self.ts])
+        bonus_l = self.bonus_list.copy()
+        for (x, y), i in bonus_l.items():
+            surf.blit(self.bonus_textures[i], [ox + (x-0.5)*self.ts, oy + (y-0.5)*self.ts])
         
         r = 1-max(0,self.remaining)/self.TIMER
         r = max(0, min(1, r))
@@ -105,48 +136,44 @@ class Game:
                     pygame.draw.line(surf, (0,255,0), [ox+X*self.ts, oy+(Y+1)*self.ts], [ox+(X+1)*self.ts, oy+Y*self.ts])
         
         remaining = self.start_time+self.DURATION - cur_time
+        if self.start_time == 0: remaining = self.DURATION
         W = 2*w3
         w6 = w3/2
-        w = W*remaining/self.DURATION
+        w = W * max(0, min(1, remaining/self.DURATION))
         pygame.draw.rect(surf, (255,255,255), [w6, surf.get_height()-10, w, 10])
         
-        red = np.count_nonzero(self.trails == 0)
-        blue = np.count_nonzero(self.trails == 1)
-        full = self.WIDTH * self.HEIGHT
-        redW = W*red/full
-        blueW = W*blue/full
+        if self.collide_start != 0:
+            rem = self.collide_start+self.COLLIDE_DURATION-cur_time
+            if rem > 0:
+                r = 1-rem/self.COLLIDE_DURATION
+                r = self.COLLIDE_RADIUS*r*self.ts
+                pygame.draw.circle(surf, (255,255,255), [ox+(self.collide_pos[0]+0.5)*self.ts, oy+(self.collide_pos[1]+0.5)*self.ts], r, 3)
         
-        h24 = h3/8
-        w20 = W/20
-        
-        a = [w6+w20,   h24]
-        b = [w6+W+w20, h24]
-        c = [w6+W-w20, h24*2]
-        d = [w6-w20,   h24*2]
-        
-        red_e  = [w6+w20+redW,    h24]
-        blue_e = [w6+W+w20-blueW, h24]
-        red_f  = [w6-w20+redW,    h24*2]
-        blue_f = [w6+W-w20-blueW, h24*2]
-        
-        pygame.draw.polygon(surf, Player.COLORS[0], [a,red_e,red_f,d])
-        pygame.draw.polygon(surf, Player.COLORS[1], [blue_e,b,c,blue_f])
-        
-        rem = self.collide_start+self.COLLIDE_DURATION-cur_time
-        if rem > 0:
-            r = 1-rem/self.COLLIDE_DURATION
-            r = self.COLLIDE_RADIUS*r*self.ts
-            pygame.draw.circle(surf, (255,255,255), [ox+(self.collide_pos[0]+0.5)*self.ts, oy+(self.collide_pos[1]+0.5)*self.ts], r, 3)
+        ds_texture = self.dashscore_textures[min(Player.MAX_DASHSCORE, self.player.dashscore)]
+        surf.blit(ds_texture, [ox-ds_texture.get_width()-self.ts, surf.get_height()/2-ds_texture.get_height()/2])
     
     def resize(self):
+        tile = pygame.image.load(os.path.join("assets","textures","grass2.png"))
+        w, h = tile.get_size()
+        self.tiles = pygame.Surface([self.WIDTH*w, self.HEIGHT*h])
+        for y in range(self.HEIGHT):
+            for x in range(self.WIDTH):
+                self.tiles.blit(tile, [x*w, y*h])
+        self.tiles = pygame.transform.scale(self.tiles, [self.WIDTH*self.ts, self.HEIGHT*self.ts])
+
         self.drool_textures = []
         for i in range(16):
-            texture = pygame.image.load(f"assets/textures/drool/{i}.png")
+            texture = pygame.image.load(os.path.join("assets","textures","drool",f"{i}.png"))
+            texture_poison = pygame.image.load(os.path.join("assets","textures","drool_poison",f"{i}.png"))
             texture = pygame.transform.scale(texture, [self.ts*2, self.ts*2])
+            texture_poison = pygame.transform.scale(texture_poison, [self.ts*2, self.ts*2])
             red, blue = texture.copy(), texture.copy()
+            redp, bluep = texture_poison.copy(), texture_poison.copy()
             red.fill(Player.TRAIL_COLORS[0]+(255,), None, pygame.BLEND_RGBA_MULT)
             blue.fill(Player.TRAIL_COLORS[1]+(255,), None, pygame.BLEND_RGBA_MULT)
-            self.drool_textures.append((red, blue))
+            redp.fill(Player.TRAIL_COLORS[0]+(255,), None, pygame.BLEND_RGBA_MULT)
+            bluep.fill(Player.TRAIL_COLORS[1]+(255,), None, pygame.BLEND_RGBA_MULT)
+            self.drool_textures.append((red, blue, redp, bluep))
         
         self.snail = []
         for i in range(3):
@@ -156,22 +183,37 @@ class Game:
                 
         self.shell = pygame.image.load("assets/textures/snail/shell.png")
         self.shell = pygame.transform.scale(self.shell, [self.ts*2, self.ts*2])
+            
+        self.bonus_textures = []
+        for b in ("bomb2", "row", "column", "poison"):
+            if b =="column":
+                texture = pygame.transform.rotate(pygame.image.load(os.path.join("assets","textures","bonus","row.png")), 90)
+            else:
+                texture = pygame.image.load(os.path.join("assets","textures","bonus",f"{b}.png"))
+            texture = pygame.transform.scale(texture, [self.ts*2, self.ts*2])
+            self.bonus_textures.append(texture)
+        
+        self.dashscore_textures = []
+        for i in range(5):
+            texture = pygame.image.load(os.path.join("assets","textures","dash_score_bar",f"{i}.png"))
+            texture = pygame.transform.scale(texture, [self.ts*2, self.ts*8])
+            texture.fill(Player.COLORS[self.player.i]+(255,), None, pygame.BLEND_RGBA_MULT)
+            self.dashscore_textures.append(texture)
     
     def handle_key(self, event):
         ndir = self.player.dir%4
-        if event.key == pygame.K_w:
+        if event.key == pygame.K_w or event.key == pygame.K_UP:
             ndir = 3
         
-        elif event.key == pygame.K_s:
+        elif event.key == pygame.K_s or event.key == pygame.K_DOWN:
             ndir = 1
         
-        elif event.key == pygame.K_a:
+        elif event.key == pygame.K_a or event.key == pygame.K_LEFT:
             ndir = 2
         
-        elif event.key == pygame.K_d:
+        elif event.key == pygame.K_d or event.key == pygame.K_RIGHT:
             ndir = 0
-        
-        if (event.mod & pygame.KMOD_LSHIFT and self.player.candash()) or self.player.dash:
+        if ((event.mod & pygame.KMOD_LSHIFT or event.key == pygame.K_SPACE) and self.player.candash()) or self.player.dash:
             if not self.player.dash:
                 self.player.dash = True
                 self.player.usedash()
@@ -180,7 +222,7 @@ class Game:
 
     
     def start_turn(self):
-        self.timer_start = time.time()
+        self.timer_start = self.manager.time()
         self.player.synced = False
         self.trail_changes = []
         for player in self.players:
@@ -188,9 +230,7 @@ class Game:
             player.x, player.y = player.nx, player.ny
             player.dir %= 4
             player.dash = False
-        
-        if random.random() < 0.25:
-            pygame.event.post(pygame.event.Event(pygame.USEREVENT+1))
+            player.poisoned = max(player.poisoned-1, 0)
     
     def end_turn(self):
         if self.manager.is_host:
@@ -212,10 +252,15 @@ class Game:
                         for i in range(Player.DASH_SIZE):
                             tx, ty = x+dx*i, y+dy*i
                             if 0 <= tx < self.WIDTH and 0 <= ty < self.HEIGHT:
-                                if self.trails[ty, tx] != player.i:
-                                    self.trail_changes.append((tx, ty, player.i))
-                    elif self.trails[y, x] != player.i:
-                        self.trail_changes.append((x, y, player.i))
+                                t = player.i
+                                if player.poisoned > 0:
+                                    t += 2
+                                self.set_trail(tx, ty, t)
+                    else:
+                        t = player.i
+                        if player.poisoned > 0:
+                            t += 2
+                        self.set_trail(x, y, t)
 
             p1, p2 = self.players
             if p1.dir <=3:
@@ -231,6 +276,10 @@ class Game:
                         p2.nx, p2.ny = p1.nx - dx, p1.ny - dy
                         p1.nx, p1.ny = p1.x, p1.y
                         self.collide()
+                    for cell in p2_cells:
+                        if cell in self.bonus_list:
+                            self.bonus[self.bonus_list[cell]](*cell, p2.i)
+                            self.bonus_list.pop(cell)
             else:
                 if p2.dir <=3:
                     dx, dy = Player.OFFSETS[p1.dir%4]
@@ -239,6 +288,10 @@ class Game:
                         p1.nx, p1.ny = p2.nx - dx, p2.ny - dy
                         p2.nx, p2.ny = p2.x, p2.y
                         self.collide()
+                    for cell in p1_cells:
+                        if cell in self.bonus_list:
+                            self.bonus[self.bonus_list[cell]](*cell, p1.i)
+                            self.bonus_list.pop(cell)
                 else:
                     #double dash
                     dx_1, dy_1 = Player.OFFSETS[p1.dir%4]
@@ -246,25 +299,45 @@ class Game:
                     for i in range(1, Player.DASH_SIZE):
                         cx1, cy1 = p1.x + dx_1*i, p1.y + dy_1*i
                         cx2, cy2 = p2.x + dx_2*i, p2.y + dy_2*i
+                        if (cx1, cy1) in self.bonus_list:
+                            self.bonus[self.bonus_list[(cx1, cy1)]](cx1, cy1, p1.i)
+                            self.bonus_list.pop((cx1, cy1))
+                        if (cx2, cy2) in self.bonus_list:
+                            self.bonus[self.bonus_list[(cx2, cy2)]](cx2, cy2, p2.i)
+                            self.bonus_list.pop((cx2, cy2))
                         if (cx1, cy1) == (cx2, cy2):
                             p1.nx, p1.ny = cx1 -dx_1, cy1 -dy_1
                             p2.nx, p2.ny = cx2 -dx_2, cy2 -dy_2
                             self.collide()
                             break
             
-            for x, y, i in self.trail_changes:
-                self.trails[y, x] = -1 if i == 2 else i
-                self.drool[y, x] = random.randint(0,15)
             for player in self.players:
-                if self.trails[player.ny, player.nx] == player.i:
+                if self.trails[player.ny, player.nx] == player.i or self.trails[player.ny, player.nx] == player.i+2:
                     player.add_dashscore()
+                pos = (player.nx, player.ny)
+                if pos in self.bonus_list:
+                    self.bonus[self.bonus_list[pos]](*pos, player.i)
+                    self.bonus_list.pop(pos)
+            for x, y, i in self.trail_changes:
+
+                self.trails[y, x] = -1 if i == 255 else i
+                self.drool[y, x] = random.randint(0,15)
+            
+            if len(self.bonus_list) < self.MAX_BONUS and random.random() < self.BONUS_CHANCE:
+                self.new_bonus()
+            
+            red = np.count_nonzero(self.trails == 0) + np.count_nonzero(self.trails == 2)
+            blue = np.count_nonzero(self.trails == 1) + np.count_nonzero(self.trails == 3)
+            self.manager.bonus_scores[0][1] = red
+            self.manager.bonus_scores[0][2] = blue
+
             self.send_sync()
             pygame.event.post(pygame.event.Event(pygame.USEREVENT))
             
         else:
             self.send_sync()
     
-    def sync(self, x1, y1, d1, s1, ds1, x2, y2, d2, s2, ds2, trails=None, col_start=0, col_x=0, col_y=0):
+    def sync(self, x1, y1, d1, s1, ds1, x2, y2, d2, s2, ds2, trails=None, bonus_list=None, col_start=0, col_x=0, col_y=0):
         if self.player.i == 1 or not self.manager.is_host:
             self.players[0].lx = self.players[0].x
             self.players[0].ly = self.players[0].y
@@ -285,9 +358,10 @@ class Game:
         
         if trails:
             for x, y, i in trails:
-                self.trails[y, x] = -1 if i == 2 else i
+                self.trails[y, x] = -1 if i == 255 else i
                 self.drool[y, x] = random.randint(0,15)
             
+            self.bonus_list = bonus_list
             self.collide_start = col_start
             self.collide_pos = [col_x, col_y]
                 
@@ -304,16 +378,17 @@ class Game:
         ds2 = self.players[1].dashscore
         
         if self.manager.is_host:
-            trails = []
-            for x, y, i in self.trail_changes:
-                trails.append(f"{x}|{y}|{i}")
-            
-            trails = "/".join(trails)
-            msg = b"turnEndHost" + struct.pack(">BBBBBBBBBBB", x1,y1,d1,s1,ds1,x2,y2,d2,s2,ds2,len(self.trail_changes))
+            msg = b"turnEndHost" + struct.pack(">BBBBBBBBBBBB", x1,y1,d1,s1,ds1,x2,y2,d2,s2,ds2,len(self.trail_changes),len(self.bonus_list))
             for x, y, i in self.trail_changes:
                 msg += struct.pack(">BBB", x,y,i)
             
+            for (x, y), i in self.bonus_list.items():
+                msg += struct.pack(">BBB", x,y,i)
+            
             msg += struct.pack(">dBB", self.collide_start, self.collide_pos[0], self.collide_pos[1])
+            msg += struct.pack(">B", len(self.manager.bonus_scores))
+            for n, r, b in self.manager.bonus_scores:
+                msg += struct.pack(">BB", r, b)
             
         else:
             msg = b"turnEnd" + struct.pack(">BBBBBBBBBB", x1,y1,d1,s1,ds1,x2,y2,d2,s2,ds2)
@@ -328,7 +403,7 @@ class Game:
         
         ox, oy = (p1.x+p2.x)/2, (p1.y+p2.y)/2
         
-        self.collide_start = time.time()
+        self.collide_start = self.manager.time()
         self.collide_pos = [int(ox), int(oy)]
         
         x1, y1 = floor(ox-2), floor(oy-2)
@@ -338,5 +413,63 @@ class Game:
         y1, y2 = max(0, min(self.HEIGHT-1, y1)), max(0, min(self.HEIGHT-1, y2))
         for y in range(y1, y2+1):
             for x in range(x1, x2+1):
-                self.trail_changes.append((x, y, 2))
+                self.set_trail(x,y,255)
+    
+    def use_bonus(self, i):
+        self.manager.bonus_scores[3][i+1] += 1
+    
+    def bomb(self, x, y, i):
+        self.use_bonus(i)
+        sx, sy = max(ceil(x-(self.BOMB_SIZE/2)),0), max(ceil(y-(self.BOMB_SIZE/2)), 0)
+        esx, esy = min(floor(x + self.BOMB_SIZE/2), self.WIDTH-1)+1, min(floor(y + self.BOMB_SIZE/2), self.HEIGHT-1)+1
+        for by in range(sy, esy):
+            for bx in range(sx, esx):
+                t = i
+                if self.players[i].poisoned > 0:
+                    t += 2
+                self.set_trail(bx, by, t)
+    
+    def row(self, x, y, i):
+        self.use_bonus(i)
+        for rx in range(0,self.WIDTH):
+            t = i
+            if self.players[i].poisoned > 0:
+                t += 2
+            self.set_trail(rx, y, t)
         
+    def column(self, x, y, i):
+        self.use_bonus(i)
+        for ry in range(0,self.HEIGHT):
+            t = i
+            if self.players[i].poisoned > 0:
+                t += 2
+            self.set_trail(x, ry, t)
+    
+    def poison(self, x, y, i):
+        self.use_bonus(i)
+        self.players[i].poisoned = self.POISON_TIME
+    
+    def new_bonus(self):
+        x, y = random.randint(0,self.WIDTH-1), random.randint(0,self.HEIGHT-1)
+        id = random.randint(0,len(self.bonus)-1)
+        if (x, y) in self.bonus_list:
+            self.new_bonus()
+            return
+        for player in self.players:
+            if abs(player.x-x) < self.DISTANCE_MIN and abs(player.y-y) < self.DISTANCE_MIN:
+                self.new_bonus()
+                return
+        self.bonus_list[(x, y)] = id
+    
+    def set_trail(self, x, y, i):
+        if i != -1 and i != 255:
+            cur = self.trails[y,x]
+            if i == cur: return
+            if i%2 == cur%2:
+                if i < cur: return
+            elif cur > 1:
+                i = cur-2
+        
+        if i > 1:
+            self.manager.bonus_scores[1][i%2 + 1] += 1
+        self.trail_changes.append((x,y,i))

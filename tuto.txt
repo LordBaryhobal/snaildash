@@ -1,0 +1,46 @@
+BUT:
+	Le but est simple, chaque joueur contrôle un escargot, laissant une traînée de bave derrière lui.
+	Celui qui à la fin du temps imparti à couvert la plus grande zone gagne !
+
+	Le temps restant est affiché par la barre blanche en-bas de l'écran.
+
+Contrôles:
+	L'escargot avance continuellement.
+	
+	Pour changer sa direction, utiliser les touches WASD ou les Flèches.
+	[schéma touches]
+
+Dash:
+	En repassant sur la bave de sa couleur, l'escargot recharge(jusqu'à 4) son réservoir de dash(à gauche)
+	[barre de dash]
+	Un dash utilise 2 barres du réservoir et permet d'avancer de 3 cases d'un coup.
+
+	Appuyer sur ESPACE ou SHIFT(MAJ) pour dasher.
+
+Bonus:
+	Des bonus apparraissent aléatoirement sur la grille. Pour les activer, il suffit de passer dessus.
+
+	Ligne de bave:
+	remplit une ligne ou colonne de bave.
+
+	Bombe de bave:
+	remplit un carré de bave.
+
+	Potion magique:
+	Rend la bave produite plus résistante pour les 3 prochains déplacement.
+
+	L'adversaire doit passer 2 fois sur la bave résistante pour la couvrir.
+
+	Combinaison de bonus:
+	La potion magique peut être combinée avec les autres bonus.
+
+Collision:
+	Lorsque les 2 joueurs entrent en collision, un onde de choc retire la bave aux alentours.
+
+
+
+
+
+
+
+

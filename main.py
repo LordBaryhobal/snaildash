@@ -6,6 +6,7 @@ import struct
 from player import Player
 import numpy as np
 import random
+import os
 
 WIDTH, HEIGHT = 600, 600
 
@@ -43,6 +44,7 @@ class Manager:
         self.bonus_scores = []
         self.home_btn_rect = None
         self.home_btn_pressed = False
+        self.finished_breakdown = False
         
         self.load_sounds()
         
@@ -69,6 +71,9 @@ class Manager:
         self.sh.running = False
         self.sh.socket.close()
         self.stage = Stage.STOP
+    
+    def time(self):
+        return time.time()-self.time_origin
     
     def render(self, surf):
         if self.stage == Stage.MAIN_MENU:
@@ -126,10 +131,11 @@ class Manager:
                 
                 elif self.stage == Stage.BREAKDOWN_BONUSES:
                     if event.button == 1:
-                        r = self.home_btn_rect
-                        if r:
-                            if r[0] <= x < r[0]+r[2] and r[1] <= y < r[1]+r[3]:
-                                self.home_btn_pressed = True
+                        if self.finished_breakdown:
+                            r = self.home_btn_rect
+                            if r:
+                                if r[0] <= x < r[0]+r[2] and r[1] <= y < r[1]+r[3]:
+                                    self.home_btn_pressed = True
             
             elif event.type == pygame.MOUSEBUTTONUP:
                 x, y = event.pos
@@ -145,35 +151,38 @@ class Manager:
                 
                 elif self.stage == Stage.BREAKDOWN_BONUSES:
                     if event.button == 1:
-                        r = self.home_btn_rect
-                        if r:
-                            if r[0] <= x < r[0]+r[2] and r[1] <= y < r[1]+r[3]:
-                                if self.home_btn_pressed:
-                                    self.click_sound.play()
-                                    self.home_btn_pressed = False
-                                    self.stage = Stage.MAIN_MENU
+                        if self.finished_breakdown:
+                            r = self.home_btn_rect
+                            if r:
+                                if r[0] <= x < r[0]+r[2] and r[1] <= y < r[1]+r[3]:
+                                    if self.home_btn_pressed:
+                                        self.click_sound.play()
+                                        self.home_btn_pressed = False
+                                        self.stage = Stage.MAIN_MENU
             
             elif event.type == pygame.USEREVENT:
                 self.game.start_turn()
-            
-            elif event.type == pygame.USEREVENT+1:
-                sound = random.choice(self.squish_sounds)
-                if self.is_host:
-                    sound.play()
         
         if self.stage == Stage.COUNTDOWN:
             rem = self.countdown_start+self.COUNTDOWN-time.time()
             if rem <= 0:
                 self.stage = Stage.IN_GAME
-                self.game.start_time = time.time()
+                #pygame.mixer.music.play()
+                self.bonus_scores = [
+                    ["Zone couverte", 0, 0],
+                    ["Bave renforcée", 0, 0],
+                    ["Dash", 0, 0],
+                    ["Bonus", 0, 0]
+                ]
+                self.game.start_time = self.time()
                 self.game.start_turn()
 
         elif self.stage == Stage.IN_GAME:
             self.game.loop()
-            rem = self.game.start_time+self.game.DURATION-time.time()
+            rem = self.game.start_time+self.game.DURATION-self.time()
             if rem <= 0:
                 self.stage = Stage.GAME_TO_BREAKDOWN
-                self.breakdown_start = time.time()
+                self.breakdown_start = self.time()
                 p1, p2 = self.game.players
                 ts = self.game.ts
                 ox, oy = win.get_width()/2 - self.game.WIDTH/2*ts, win.get_height()/2 - self.game.HEIGHT/2*ts
@@ -182,21 +191,17 @@ class Manager:
                 self.p1Pe, self.p2Pe = [ox, oy], [ox+self.game.WIDTH*ts, oy]
         
         elif self.stage == Stage.GAME_TO_BREAKDOWN:
-            rem = self.breakdown_start+self.BREAKDOWN_IN_DUR-time.time()
+            rem = self.breakdown_start+self.BREAKDOWN_IN_DUR-self.time()
             if rem <= 0:
                 self.stage = Stage.BREAKDOWN_BAR
-                self.breakdown_start = time.time()
+                self.breakdown_start = self.time()
         
         elif self.stage == Stage.BREAKDOWN_BAR:
-            rem = self.breakdown_start+self.BREAKDOWN_BAR_DUR-time.time()
+            rem = self.breakdown_start+self.BREAKDOWN_BAR_DUR-self.time()
             if rem <= 0:
                 self.stage = Stage.BREAKDOWN_BONUSES
-                self.breakdown_start = time.time()
-                self.bonus_scores = [
-                    ("Test 1", 13, 42),
-                    ("Test 2", 83, 23),
-                    ("Essai 3", 4085, 384)
-                ]
+                self.finished_breakdown = False
+                self.breakdown_start = self.time()
 
     def render_menu(self, surf):
         surf.fill(0)
@@ -220,7 +225,7 @@ class Manager:
     def render_breakdown_transition(self, surf):
         self.game.render(surf, False)
         fade = pygame.Surface(surf.get_size(), pygame.SRCALPHA)
-        t = time.time()
+        t = self.time()
         r = self.breakdown_start+self.BREAKDOWN_IN_DUR-t
         r = 1-r/self.BREAKDOWN_IN_DUR
         r = max(0, min(1, r))
@@ -243,7 +248,7 @@ class Manager:
     def render_breakdown_bar(self, surf):
         surf.fill(0)
         
-        t = time.time()
+        t = self.time()
         
         r_bar = self.breakdown_start+self.BREAKDOWN_BAR_DUR-self.BREAKDOWN_BAR_PAUSE-self.BREAKDOWN_BAR_END_DUR-t
         r_end = self.breakdown_start+self.BREAKDOWN_BAR_DUR-t
@@ -251,8 +256,8 @@ class Manager:
         r_end = 1-r_end/self.BREAKDOWN_BAR_END_DUR
         r_bar = max(0, min(1, r_bar))
         
-        red = np.count_nonzero(self.game.trails == 0)
-        blue = np.count_nonzero(self.game.trails == 1)
+        red = np.count_nonzero(self.game.trails == 0) + np.count_nonzero(self.game.trails == 2)
+        blue = np.count_nonzero(self.game.trails == 1) + np.count_nonzero(self.game.trails == 3)
         full = self.game.WIDTH * self.game.HEIGHT
         pct_red = red/full*100
         pct_blue = blue/full*100
@@ -304,8 +309,8 @@ class Manager:
         surf.fill(0)
         
         # Bar
-        red = np.count_nonzero(self.game.trails == 0)
-        blue = np.count_nonzero(self.game.trails == 1)
+        red = np.count_nonzero(self.game.trails == 0) + np.count_nonzero(self.game.trails == 2)
+        blue = np.count_nonzero(self.game.trails == 1) + np.count_nonzero(self.game.trails == 3)
         full = self.game.WIDTH * self.game.HEIGHT
         pct_red = red/full*100
         pct_blue = blue/full*100
@@ -342,7 +347,7 @@ class Manager:
         surf.blit(txt, [ox+width/2-txt.get_width()/2, oy+bar_h/2-txt.get_height()/2])
         
         # Bonus scores
-        cur = time.time()
+        cur = self.time()
         step = int( (cur-self.breakdown_start)//self.BREAKDOWN_INTERVAL )
         x1, x2 = self.p1Pe[0], self.p2Pe[0]
         xm = (x1+x2)/2
@@ -360,8 +365,15 @@ class Manager:
             surf.blit(txtRed, [x1-txtRed.get_width()/2, y-txtRed.get_height()/2])
             surf.blit(txtBlue, [x2-txtBlue.get_width()/2, y-txtBlue.get_height()/2])
             surf.blit(txtName, [xm-txtName.get_width()/2, y-txtName.get_height()/2])
+            
+            if red >= blue:
+                pygame.draw.circle(surf, Player.COLORS[0], [x1, y], (x2-x1)/16, 2)
+            
+            if blue >= red:
+                pygame.draw.circle(surf, Player.COLORS[1], [x2, y], (x2-x1)/16, 2)
         
         if step > len(self.bonus_scores):
+            self.finished_breakdown = True
             txt = self.font.render("Menu principal", True, (0,0,0))
             w, h = txt.get_size()
             tx, ty = surf.get_width()/2-w/2, surf.get_height()-75-h/2
@@ -378,6 +390,7 @@ class Manager:
         
         self.countdown_start = time.time()
         self.stage = Stage.COUNTDOWN
+        self.time_origin = time.time()
     
     def on_receive(self, data: bytes):
         if data == b"quit":
@@ -394,22 +407,35 @@ class Manager:
         elif self.stage == Stage.IN_GAME:
             if data.startswith(b"turnEnd"):
                 if data.startswith(b"turnEndHost"):
-                    x1, y1, d1, s1, ds1, x2, y2, d2, s2, ds2, trails_count = struct.unpack(">BBBBBBBBBBB", data[11:22])
-                    data = data[22:]
+                    x1, y1, d1, s1, ds1, x2, y2, d2, s2, ds2, trails_count, bonus_count = struct.unpack(">BBBBBBBBBBBB", data[11:23])
+                    data = data[23:]
                     trails = []
                     for j in range(trails_count):
                         x, y, i = struct.unpack(">BBB", data[3*j:3*j+3])
                         trails.append((x, y, i))
-                    
+
                     data = data[3*trails_count:]
-                    col_start, col_x, col_y = struct.unpack(">dBB", data)
+                    
+                    bonus_list = {}
+                    for j in range(bonus_count):
+                        x, y, i = struct.unpack(">BBB", data[3*j:3*j+3])
+                        bonus_list[(x, y)] = i
+                    
+                    data = data[3*bonus_count:]
+                    col_start, col_x, col_y, bonus_scores_count = struct.unpack(">dBBB", data[:11])
+                    data = data[11:]
+                    for i in range(bonus_scores_count):
+                        r, b = struct.unpack(">BB", data[2*i:2*i+2])
+                        self.bonus_scores[i][1] = r
+                        self.bonus_scores[i][2] = b
                 
                 else:
                     x1, y1, d1, s1, ds1, x2, y2, d2, s2, ds2 = struct.unpack(">BBBBBBBBBB", data[7:])
                     trails = None
+                    bonus_list = None
                     col_start, col_x, col_y = 0, 0, 0
                 
-                self.game.sync(x1, y1, d1, s1, ds1, x2, y2, d2, s2, ds2, trails, col_start, col_x, col_y)
+                self.game.sync(x1, y1, d1, s1, ds1, x2, y2, d2, s2, ds2, trails, bonus_list, col_start, col_x, col_y)
                 if self.is_host:
                     self.game.end_turn()
                 
@@ -417,12 +443,9 @@ class Manager:
                     pygame.event.post(pygame.event.Event(pygame.USEREVENT))
     
     def load_sounds(self):
-        self.squish_sounds = []
-        for i in range(8):
-            sound = pygame.mixer.Sound(f"assets/sounds/squish/{i}.ogg")
-            self.squish_sounds.append(sound)
-        
-        self.click_sound = pygame.mixer.Sound("assets/sounds/click.ogg")
+        self.click_sound = pygame.mixer.Sound(os.path.join("assets","sounds","click.wav"))
+        pygame.mixer.music.load(os.path.join("assets","musics","game.wav"))
+        pygame.mixer.music.set_volume(0.6)
 
 if __name__ == "__main__":
     pygame.init()
