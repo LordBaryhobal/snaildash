@@ -1,7 +1,7 @@
 import numpy as np
 import pygame
 import time
-from math import floor, ceil
+from math import floor, ceil, radians, sin, cos
 import struct
 import random
 import os
@@ -49,6 +49,15 @@ class Game:
         self.bonus_list = {
         }
 
+        self.stars = []
+        a = radians(random.randint(0,359))
+        self.star_vx = cos(a)*0.005
+        self.star_vy = sin(a)*0.005
+        for i in range(200):
+            x, y = random.random(), random.random()
+            f = random.random()/2+0.5
+            self.stars.append([x,y,f])
+
     def loop(self):
         self.remaining = self.timer_start+self.TIMER - self.manager.time()
         
@@ -74,7 +83,21 @@ class Game:
         
         ox, oy = surf.get_width()/2 - self.WIDTH/2*self.ts, surf.get_height()/2 - self.HEIGHT/2*self.ts
 
-        surf.blit(self.tiles, [ox, oy])
+        for i, [x, y, f] in enumerate(self.stars):
+            col = int(200*f)
+            pygame.draw.circle(surf, (col, col, col), [x*surf.get_width(), y*surf.get_height()], f*4)
+            x, y = x+self.star_vx*f, y+self.star_vy*f
+            x %= 1
+            y %= 1
+            self.stars[i] = [x, y, f]
+
+        pygame.draw.rect(surf, (0,0,0), [ox, oy, self.WIDTH*self.ts, self.HEIGHT*self.ts])
+        #surf.blit(self.tiles, [ox, oy])
+        for y in range(self.HEIGHT+1):
+            pygame.draw.line(surf, (150,150,150), [ox, oy+y*self.ts], [ox+self.WIDTH*self.ts, oy+y*self.ts])
+        
+        for x in range(self.WIDTH+1):
+            pygame.draw.line(surf, (150,150,150), [ox+x*self.ts, oy], [ox+x*self.ts, oy+self.HEIGHT*self.ts])
 
         for y in range(self.HEIGHT):
             for x in range(self.WIDTH):
