@@ -489,12 +489,13 @@ class Manager:
 
 if __name__ == "__main__":
     pygame.init()
-    win = pygame.display.set_mode([WIDTH, HEIGHT], pygame.RESIZABLE)
     pygame.display.set_caption("Snaildash")
     clock = pygame.time.Clock()
     
     manager = Manager()
-
+    
+    win = pygame.display.set_mode([WIDTH, HEIGHT], pygame.RESIZABLE)
+    
     while manager.stage != Stage.STOP:
         pygame.display.set_caption(f"Snaildash - {clock.get_fps():.2f}fps")
         events = pygame.event.get()
