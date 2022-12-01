@@ -119,7 +119,11 @@ class Game:
             X, Y = lx+(x-lx)*r, ly+(y-ly)*r
             
             if render_players:
-                pygame.draw.circle(surf, Player.COLORS[player.i], [ox+(X+0.5)*self.ts, oy+(Y+0.5)*self.ts], self.ts/2)
+                _ = 4 - abs(r-0.5)*8
+                texture = self.snail[int(_)][player.i]
+                if player.dir % 4 != 3:
+                    texture = pygame.transform.rotate(texture, -((player.dir+1)%4)*90)
+                surf.blit(texture, [ox+(X-0.5)*self.ts, oy+(Y-0.5)*self.ts])
 
                 if player.stun_count != 0:
                     pygame.draw.line(surf, (0,255,0), [ox+X*self.ts, oy+Y*self.ts], [ox+(X+1)*self.ts, oy+(Y+1)*self.ts])
@@ -164,6 +168,15 @@ class Game:
             redp.fill(Player.TRAIL_COLORS[0]+(255,), None, pygame.BLEND_RGBA_MULT)
             bluep.fill(Player.TRAIL_COLORS[1]+(255,), None, pygame.BLEND_RGBA_MULT)
             self.drool_textures.append((red, blue, redp, bluep))
+        
+        self.snail = []
+        for i in range(5):
+            red = pygame.image.load(os.path.join("assets","textures","snail","red",f"{i}.png"))
+            blue = pygame.image.load(os.path.join("assets","textures","snail","blue",f"{i}.png"))
+            red = pygame.transform.scale(red, [self.ts*2, self.ts*2])
+            blue = pygame.transform.scale(blue, [self.ts*2, self.ts*2])
+            self.snail.append((red, blue))
+            
         self.bonus_textures = []
         for b in ("bomb2", "row", "column", "poison"):
             if b =="column":
@@ -228,6 +241,7 @@ class Game:
                     
                     player.nx, player.ny = x2, y2
                     if player.dir > 3:
+                        self.manager.bonus_scores[2][player.i+1] += 1
                         dx, dy = Player.OFFSETS[player.dir%4]
                         for i in range(Player.DASH_SIZE):
                             tx, ty = x+dx*i, y+dy*i

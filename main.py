@@ -233,9 +233,15 @@ class Manager:
         surf.blit(fade, [0,0])
         p1P = [(self.p1Pe[0]-self.p1Ps[0])*r+self.p1Ps[0], (self.p1Pe[1]-self.p1Ps[1])*r+self.p1Ps[1]]
         p2P = [(self.p2Pe[0]-self.p2Ps[0])*r+self.p2Ps[0], (self.p2Pe[1]-self.p2Ps[1])*r+self.p2Ps[1]]
-        R = self.game.ts * (r+1)/2
-        pygame.draw.circle(surf, Player.COLORS[0], p1P, R)
-        pygame.draw.circle(surf, Player.COLORS[1], p2P, R)
+        
+        red = self.game.snail[0][0]
+        blue = self.game.snail[0][1]
+        a_red = -((self.game.players[0].dir+1)%4)*90
+        a_blue = -((self.game.players[1].dir+1)%4)*90
+        red = pygame.transform.rotate(red, a_red-a_red*r)
+        blue = pygame.transform.rotate(blue, a_blue-a_blue*r)
+        surf.blit(red, [p1P[0]-red.get_width()/2, p1P[1]-red.get_height()/2])
+        surf.blit(blue, [p2P[0]-blue.get_width()/2, p2P[1]-blue.get_height()/2])
     
     def render_breakdown_bar(self, surf):
         surf.fill(0)
@@ -265,8 +271,11 @@ class Manager:
         pygame.draw.rect(surf, Player.COLORS[0], [ox, oy, width*r_red, bar_h])
         pygame.draw.rect(surf, Player.COLORS[1], [ox+width-width*r_blue, oy, width*r_blue, bar_h])
         
-        pygame.draw.circle(surf, Player.COLORS[0], p1, self.game.ts)
-        pygame.draw.circle(surf, Player.COLORS[1], p2, self.game.ts)
+        red_snail = self.game.snail[0][0]
+        blue_snail = self.game.snail[0][1]
+        
+        surf.blit(red_snail, [p1[0]-red_snail.get_width()/2, p1[1]-red_snail.get_height()/2])
+        surf.blit(blue_snail, [p2[0]-blue_snail.get_width()/2, p2[1]-blue_snail.get_height()/2])
         
         pct_red = self.pct_font.render(f"{pct_red:.1f}%", True, (255,255,255))
         pct_blue = self.pct_font.render(f"{pct_blue:.1f}%", True, (255,255,255))
@@ -313,8 +322,11 @@ class Manager:
         bar_h = self.game.ts
         ox, oy = mx-width/2, my-bar_h/2
         
-        pygame.draw.circle(surf, Player.COLORS[0], p1, self.game.ts)
-        pygame.draw.circle(surf, Player.COLORS[1], p2, self.game.ts)
+        red_snail = self.game.snail[0][0]
+        blue_snail = self.game.snail[0][1]
+        
+        surf.blit(red_snail, [p1[0]-red_snail.get_width()/2, p1[1]-red_snail.get_height()/2])
+        surf.blit(blue_snail, [p2[0]-blue_snail.get_width()/2, p2[1]-blue_snail.get_height()/2])
         
         pct_red = self.pct_font.render(f"{pct_red:.1f}%", True, (255,255,255))
         pct_blue = self.pct_font.render(f"{pct_blue:.1f}%", True, (255,255,255))
