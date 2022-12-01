@@ -9,7 +9,7 @@ class Player:
         (DASH_SIZE,0),(0,DASH_SIZE),(-DASH_SIZE,0),(0,-DASH_SIZE)
     ]
 
-    def __init__(self, game, i, x, y):
+    def __init__(self, game, i, x, y, dir=2):
         self.game = game
         self.i = i
         self.x = x
@@ -17,20 +17,20 @@ class Player:
         self.lx, self.ly = x, y
         self.nx, self.ny = x, y
         self.stun_count = 0
-        self.dir = i*2  # 0, 1, 2, 3 -> right, down, left, up
+        self.dir = dir  # 0, 1, 2, 3 -> right, down, left, up
         self.synced = False
         self.dashscore = 0
         self.dash = False
 
-    def reset(self, x, y):
+    def reset(self, x, y, dir=2):
         self.x = x
         self.y = y
         self.lx, self.ly = x, y
         self.nx, self.ny = x, y
-        self.dir = self.i*2
+        self.dir = dir
         self.stun_count = 0
         self.synced = False
-        self.dashscore = 0
+        self.dashscore = 4
         self.dash = False
         self.poisoned = 0
 

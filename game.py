@@ -21,10 +21,10 @@ class Game:
     BONUS_CHANCE = 0.2
     POISON_TIME = 4
 
-    def __init__(self, manager):
+    def __init__(self, manager, win):
         self.manager = manager
         self.players = [
-            Player(self, 0, 0, 0),
+            Player(self, 0, 10, 10, 3),
             Player(self, 1, self.WIDTH-1, self.HEIGHT-1)
         ]
         self.font = pygame.font.SysFont("arial", 30)
@@ -34,18 +34,20 @@ class Game:
         self.start_time = 0
         self.ts = 1
         self.reset()
+        self.surf = win
+        self.i = 0
 
     def reset(self):
-        self.trails = np.zeros([self.HEIGHT, self.WIDTH], dtype="int8")-1
-        self.players[0].reset(0, 0)
-        self.players[1].reset(self.WIDTH-1, self.HEIGHT-1)
+        self.trails = np.random.randint(-1, 2, size=[self.HEIGHT, self.WIDTH], dtype="int8")
+        self.players[0].reset(10, 10, 3)
+        self.players[1].reset(6, 6, 0)
         
         self.collide_start = 0
         self.collide_pos = [0,0]
         self.trail_changes = []
         self.remaining = self.TIMER
 
-        self.drool = np.zeros([self.HEIGHT, self.WIDTH], dtype="int8")-1
+        self.drool = np.random.randint(0, 15, size=[self.HEIGHT, self.WIDTH], dtype="int8")
         self.bonus_list = {
         }
 
@@ -212,9 +214,16 @@ class Game:
                 self.player.usedash()
             ndir += 4
         self.player.dir = ndir 
-
+        if event.key == pygame.K_b:
+            pygame.image.save(self.surf, os.path.join("images",f"image{self.i}.png"))
+            print(f"saved image n:{self.i}")
+            self.i+=1
     
     def start_turn(self):
+        if self.player.i == 0:
+            pygame.image.save(self.surf, os.path.join("images",f"image{self.i}.png"))
+            print(f"saved image n:{self.i}")
+        self.i+=1
         self.timer_start = self.manager.time()
         self.player.synced = False
         self.trail_changes = []
@@ -316,9 +325,6 @@ class Game:
 
                 self.trails[y, x] = -1 if i == 255 else i
                 self.drool[y, x] = random.randint(0,15)
-            
-            if len(self.bonus_list) < self.MAX_BONUS and random.random() < self.BONUS_CHANCE:
-                self.new_bonus()
             
             red = np.count_nonzero(self.trails == 0) + np.count_nonzero(self.trails == 2)
             blue = np.count_nonzero(self.trails == 1) + np.count_nonzero(self.trails == 3)

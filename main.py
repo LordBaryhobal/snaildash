@@ -28,14 +28,14 @@ class Manager:
     BREAKDOWN_BAR_END_DUR = 0.2
     BREAKDOWN_INTERVAL = 1
 
-    def __init__(self):
+    def __init__(self, win):
         self.stage = Stage.MAIN_MENU
         self.logo = pygame.image.load("snaildash.png")
         self.font = pygame.font.SysFont("arial", 30)
         self.cd_font = pygame.font.SysFont("arial", 50, bold=True, italic=True)
         self.pct_font = pygame.font.SysFont("arial", 20)
         self.sh = SocketHandler(self.on_receive)
-        self.game = Game(self)
+        self.game = Game(self, win)
         self.play_btn_rect = [0,0,0,0]
         self.play_btn_pressed = False
         self.is_host = False
@@ -457,7 +457,7 @@ if __name__ == "__main__":
     pygame.display.set_caption("Snaildash")
     clock = pygame.time.Clock()
     
-    manager = Manager()
+    manager = Manager(win)
 
     while manager.stage != Stage.STOP:
         pygame.display.set_caption(f"Snaildash - {clock.get_fps():.2f}fps")
