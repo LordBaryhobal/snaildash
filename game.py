@@ -336,11 +336,11 @@ class Game:
             self.players[1].stun_count = s2
             self.players[1].dashscore = ds2
         
-        if trails:
+        if trails is not None:
             for x, y, i in trails:
                 self.trails[y, x] = -1 if i == 255 else i
                 self.drool[y, x] = random.randint(0,15)
-            
+                
             self.bonus_list = bonus_list
             self.collide_start = col_start
             self.collide_pos = [col_x, col_y]
