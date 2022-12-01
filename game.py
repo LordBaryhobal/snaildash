@@ -260,16 +260,18 @@ class Game:
             if p1.dir <=3:
                 if p2.dir <=3:
                     if (p1.nx == p2.nx and p1.ny == p2.ny) or (p1.x == p2.nx and p1.y == p2.ny and p2.x == p1.nx and p2.y == p1.ny):
+                        center = (p1.nx, p1.ny) if p1.nx == p2.nx else ((p1.x + p2.y)/2, (p1.y + p2.y)/2)
                         p1.nx, p1.ny = p1.x, p1.y
                         p2.nx, p2.ny = p2.x, p2.y
-                        self.collide()
+                        self.collide(center)
                 else:
                     dx, dy = Player.OFFSETS[p2.dir%4]
                     p2_cells = [ (p2.x + dx*i, p2.y + dy*i) for i in range(1, Player.DASH_SIZE+1)]
                     if (p1.nx, p1.ny) in p2_cells:
+                        center = (p1.nx, p1.ny)
                         p2.nx, p2.ny = p1.nx - dx, p1.ny - dy
                         p1.nx, p1.ny = p1.x, p1.y
-                        self.collide()
+                        self.collide(center)
                     for cell in p2_cells:
                         if cell in self.bonus_list:
                             self.bonus[self.bonus_list[cell]](*cell, p2.i)
@@ -279,9 +281,10 @@ class Game:
                     dx, dy = Player.OFFSETS[p1.dir%4]
                     p1_cells = [(p1.x + dx*i, p1.y + dy*i) for i in range(1, Player.DASH_SIZE+1)]
                     if (p2.nx, p2.ny) in p1_cells:
+                        center = (p2.nx, p2.ny)
                         p1.nx, p1.ny = p2.nx - dx, p2.ny - dy
                         p2.nx, p2.ny = p2.x, p2.y
-                        self.collide()
+                        self.collide(center)
                     for cell in p1_cells:
                         if cell in self.bonus_list:
                             self.bonus[self.bonus_list[cell]](*cell, p1.i)
@@ -300,9 +303,10 @@ class Game:
                             self.bonus[self.bonus_list[(cx2, cy2)]](cx2, cy2, p2.i)
                             self.bonus_list.pop((cx2, cy2))
                         if (cx1, cy1) == (cx2, cy2):
+                            center = (cx1, cy1)
                             p1.nx, p1.ny = cx1 -dx_1, cy1 -dy_1
                             p2.nx, p2.ny = cx2 -dx_2, cy2 -dy_2
-                            self.collide()
+                            self.collide(center)
                             break
             
             for player in self.players:
@@ -389,13 +393,12 @@ class Game:
         
         self.manager.sh.send(msg)
     
-    def collide(self):
-        p1, p2 = self.players
+    def collide(self, center):
         for p in self.players:
             if not (p.dir == 0 and p.x == self.WIDTH-1) and not (p.dir == 1 and p.y == self.HEIGHT-1) and not (p.dir == 2 and p.x == 0) and not (p.dir == 3 and p.y== 0):
                 p.dir = (p.dir%4+2)%4
         
-        ox, oy = (p1.x+p2.x)/2, (p1.y+p2.y)/2
+        ox, oy = center
         
         self.collide_start = self.manager.time()
         self.collide_pos = [int(ox), int(oy)]
