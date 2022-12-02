@@ -27,7 +27,7 @@ class Tutorial:
         self.next_pressed = False
 
     def load(self):
-        with open(os.path.join("assets", "tutorials.json"), "r") as f:
+        with open(os.path.join("assets", "tutorials.json"), "r", encoding="utf-8") as f:
             self.slides = json.load(f)
             for slide in self.slides:
                 for section in slide["sections"]:
