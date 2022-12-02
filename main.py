@@ -9,7 +9,7 @@ import random
 import os
 from tutorial import Tutorial
 
-WIDTH, HEIGHT = 600, 600
+WIDTH, HEIGHT = 1920, 1080
 
 class Stage:
     STOP = -1
@@ -42,6 +42,8 @@ class Manager:
         self.play_btn_pressed = False
         self.tuto_btn_rect = [0,0,0,0]
         self.tuto_btn_pressed = False
+        self.return_btn_rect = [0,0,0,0]
+        self.return_btn_pressed = False
         self.is_host = False
         self.countdown_start = 0
         self.breakdown_start = 0
@@ -142,6 +144,12 @@ class Manager:
                         elif r2[0] <= x < r2[0]+r2[2] and r2[1] <= y < r2[1]+r2[3]:
                             self.tuto_btn_pressed = True
                 
+                elif self.stage == Stage.WAITING_OPPONENT:
+                    if event.button == 1:
+                        r = self.return_btn_rect
+                        if r[0] <= x < r[0]+r[2] and r[1] <= y < r[1]+r[3]:
+                            self.return_btn_pressed = True
+                
                 elif self.stage == Stage.BREAKDOWN_BONUSES:
                     if event.button == 1:
                         if self.finished_breakdown:
@@ -173,6 +181,15 @@ class Manager:
                                 self.tuto_btn_pressed = False
                                 self.stage = Stage.TUTORIAL
                                 self.tutorial.start_time = time.time()
+
+                elif self.stage == Stage.WAITING_OPPONENT:
+                    if event.button == 1:
+                        r = self.return_btn_rect
+                        if r[0] <= x < r[0]+r[2] and r[1] <= y < r[1]+r[3]:
+                            if self.return_btn_pressed:
+                                self.click_sound.play()
+                                self.return_btn_pressed = False
+                                self.stage = Stage.MAIN_MENU
                 
                 elif self.stage == Stage.BREAKDOWN_BONUSES:
                     if event.button == 1:
@@ -243,10 +260,10 @@ class Manager:
         pygame.draw.rect(surf, (133, 255, 255), self.play_btn_rect)
         surf.blit(txt, [tx, ty])
         
-        txt = self.font.render("Tutoriel", True, (0,0,0))
+        txt = self.font.render("Comment ça marche", True, (0,0,0))
         w, h = txt.get_size()
         tx, ty = surf.get_width()/2-w/2, ty+100
-        self.tuto_btn_rect = [tx-100, ty-10, w+200, h+20]
+        self.tuto_btn_rect = [tx-50, ty-10, w+100, h+20]
         pygame.draw.rect(surf, (133, 255, 255), self.tuto_btn_rect)
         surf.blit(txt, [tx, ty])
     
@@ -258,6 +275,13 @@ class Manager:
         txt = self.font.render(txt[:len(txt)-3+dots], True, (255,255,255))
         surf.fill(0)
         surf.blit(txt, [surf.get_width()/2-size[0]/2, surf.get_height()/2-size[1]/2])
+
+        txt = self.font.render("Menu principal", True, (0,0,0))
+        w, h = txt.get_size()
+        tx, ty = surf.get_width()/2-w/2, 3*surf.get_height()/4-h/2
+        self.return_btn_rect = [tx-100, ty-10, w+200, h+20]
+        pygame.draw.rect(surf, (133, 255, 255), self.return_btn_rect)
+        surf.blit(txt, [tx, ty])
     
     def render_breakdown_transition(self, surf):
         self.game.render(surf, False)
@@ -498,7 +522,7 @@ if __name__ == "__main__":
     
     manager = Manager()
     
-    win = pygame.display.set_mode([WIDTH, HEIGHT], pygame.RESIZABLE)
+    win = pygame.display.set_mode([WIDTH, HEIGHT], pygame.FULLSCREEN)
     
     while manager.stage != Stage.STOP:
         pygame.display.set_caption(f"Snaildash - {clock.get_fps():.2f}fps")
