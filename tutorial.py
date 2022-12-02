@@ -104,13 +104,17 @@ class Tutorial:
                     img_ox = W6
                     ox = img_ox + img.get_width() + 20
                 
+                elif align_img == "center":
+                    img_ox = W/2-img.get_width()/2
+                
                 surf.blit(img, [img_ox, oy+section_h/2-img.get_height()/2])
             
-            txt_h = (len(lines)-1)*10 + sum([l.get_height() for l in lines])
-            y = oy+section_h/2-txt_h/2
-            for line in lines:
-                surf.blit(line, [ox, y])
-                y += line.get_height()+10
+            if lines:
+                txt_h = (len(lines)-1)*10 + sum([l.get_height() for l in lines])
+                y = oy+section_h/2-txt_h/2
+                for line in lines:
+                    surf.blit(line, [ox, y])
+                    y += line.get_height()+10
         
     def mouse_down(self, x, y):
         r1, r2 ,r3 = self.main_menu_rect, self.prev_rect, self.next_rect
