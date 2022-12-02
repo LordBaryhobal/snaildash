@@ -20,9 +20,12 @@
                 "text": [
                     "L'escargot avance continuellement.",
 	                "Pour changer sa direction, utiliser les touches WASD ou ←↑↓→."
-                ],
+                ]
+            },
+            {
+                "text": [],
                 "img": "keys.png",
-                "align_img": "left"
+                "align_img": "center"
             }
         ]
     },
@@ -42,6 +45,11 @@
 	                "Un dash utilise 2 barres du réservoir et permet d'avancer de 3 cases d'un coup.",
 	                "Appuyer sur ESPACE ou SHIFT (MAJ) pour dasher."
                 ]
+            },
+            {
+                "text": [],
+                "img": "dash_keys.png",
+                "align_img": "center"
             }
         ]
     },
@@ -78,7 +86,7 @@
             {
                 "text": [
                     "Potion magique:",
-	                "Rend la bave produite plus résistante pour les 3 prochains déplacement.",
+	                "Rend la bave produite plus résistante pour les 3 prochains déplacements.",
                     "L'adversaire doit passer 2 fois sur la bave résistante pour la couvrir."
                 ],
                 "anim": "poison",
