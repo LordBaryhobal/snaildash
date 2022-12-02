@@ -493,7 +493,7 @@ class Manager:
                     col_start, col_x, col_y, bonus_scores_count = struct.unpack(">dBBB", data[:11])
                     data = data[11:]
                     for i in range(bonus_scores_count):
-                        r, b = struct.unpack(">BB", data[2*i:2*i+2])
+                        r, b = struct.unpack(">II", data[8*i:8*i+8])
                         self.bonus_scores[i][1] = r
                         self.bonus_scores[i][2] = b
                 

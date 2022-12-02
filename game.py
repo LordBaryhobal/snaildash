@@ -386,7 +386,7 @@ class Game:
             msg += struct.pack(">dBB", self.collide_start, self.collide_pos[0], self.collide_pos[1])
             msg += struct.pack(">B", len(self.manager.bonus_scores))
             for n, r, b in self.manager.bonus_scores:
-                msg += struct.pack(">BB", r, b)
+                msg += struct.pack(">II", r, b)
             
         else:
             msg = b"turnEnd" + struct.pack(">BBBBBBBBBB", x1,y1,d1,s1,ds1,x2,y2,d2,s2,ds2)
