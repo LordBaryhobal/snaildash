@@ -201,7 +201,8 @@ class Manager:
                     ["Zone couverte", 0, 0],
                     ["Bave renforcée", 0, 0],
                     ["Dash", 0, 0],
-                    ["Bonus", 0, 0]
+                    ["Bonus", 0, 0],
+                    ["Total", 0, 0]
                 ]
                 self.game.start_time = self.time()
                 self.game.start_turn()
@@ -396,9 +397,8 @@ class Manager:
         ye = surf.get_height()-150
         h = (ye-ys)/len(self.bonus_scores)
         
-        if self.first:
-            self.first = False
-            self.bonus_scores.append(["total", sum([score[1] for score in self.bonus_scores]), sum([score[2] for score in self.bonus_scores])])
+        self.bonus_scores[-1][1] = sum([score[1] for score in self.bonus_scores[:-1]])
+        self.bonus_scores[-1][2] = sum([score[2] for score in self.bonus_scores[:-1]])
         
         for i in range(min(step, len(self.bonus_scores))):
             name, red, blue = self.bonus_scores[i]
@@ -435,7 +435,6 @@ class Manager:
         self.countdown_start = time.time()
         self.stage = Stage.COUNTDOWN
         self.time_origin = time.time()
-        self.first = True
     
     def on_receive(self, data: bytes):
         if data == b"quit":
