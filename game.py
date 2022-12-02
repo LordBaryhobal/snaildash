@@ -12,7 +12,7 @@ class Game:
     WIDTH = 15
     HEIGHT = 15
     TIMER = 0.25
-    DURATION = 90
+    DURATION = 89
     COLLIDE_DURATION = 1
     COLLIDE_RADIUS = 4
     BOMB_SIZE = 5

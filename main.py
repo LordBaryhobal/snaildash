@@ -213,7 +213,7 @@ class Manager:
             rem = self.countdown_start+self.COUNTDOWN-time.time()
             if rem <= 0:
                 self.stage = Stage.IN_GAME
-                #pygame.mixer.music.play()
+                pygame.mixer.music.play()
                 self.bonus_scores = [
                     ["Zone couverte", 0, 0],
                     ["Bave renforcée", 0, 0],
