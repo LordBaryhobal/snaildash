@@ -396,6 +396,10 @@ class Manager:
         ye = surf.get_height()-150
         h = (ye-ys)/len(self.bonus_scores)
         
+        if self.first:
+            self.first = False
+            self.bonus_scores.append(["total", sum([score[1] for score in self.bonus_scores]), sum([score[2] for score in self.bonus_scores])])
+        
         for i in range(min(step, len(self.bonus_scores))):
             name, red, blue = self.bonus_scores[i]
             y = ys + i*h + h/2
@@ -431,6 +435,7 @@ class Manager:
         self.countdown_start = time.time()
         self.stage = Stage.COUNTDOWN
         self.time_origin = time.time()
+        self.first = True
     
     def on_receive(self, data: bytes):
         if data == b"quit":
