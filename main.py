@@ -8,6 +8,7 @@ import numpy as np
 import random
 import os
 from tutorial import Tutorial
+import json
 
 WIDTH, HEIGHT = 1920, 1080
 
@@ -21,6 +22,7 @@ class Stage:
     BREAKDOWN_BAR = 5
     BREAKDOWN_BONUSES = 6
     TUTORIAL = 7
+    CREDITS = 8
 
 class Manager:
     COUNTDOWN = 4
@@ -36,6 +38,8 @@ class Manager:
         self.font = pygame.font.SysFont("arial", 30)
         self.cd_font = pygame.font.SysFont("arial", 50, bold=True, italic=True)
         self.pct_font = pygame.font.SysFont("arial", 20)
+        self.credits_font = pygame.font.SysFont("arial", 20)
+        self.credits_sect_font = pygame.font.SysFont("arial", 24, bold=True)
         self.sh = SocketHandler(self.on_receive)
         self.game = Game(self)
         self.play_btn_rect = [0,0,0,0]
@@ -44,6 +48,8 @@ class Manager:
         self.tuto_btn_pressed = False
         self.return_btn_rect = [0,0,0,0]
         self.return_btn_pressed = False
+        self.credits_btn_rect = [0,0,0,0]
+        self.credits_btn_pressed = False
         self.is_host = False
         self.countdown_start = 0
         self.breakdown_start = 0
@@ -55,6 +61,8 @@ class Manager:
         self.tutorial = Tutorial(self, Stage)
         
         self.load_sounds()
+        with open(os.path.join("assets", "credits.json"), "r") as f:
+            self.credits = json.load(f)
         
         print(f"The code for this machine is: {self.sh.get_code()}")
         code = input("Code of the other machine (leave empty to host): ")
@@ -119,6 +127,9 @@ class Manager:
         
         elif self.stage == Stage.TUTORIAL:
             self.tutorial.render(surf)
+        
+        elif self.stage == Stage.CREDITS:
+            self.render_credits(surf)
 
     def handle_events(self, events):
         for event in events:
@@ -138,13 +149,17 @@ class Manager:
                     if event.button == 1:
                         r = self.play_btn_rect
                         r2 = self.tuto_btn_rect
+                        r3 = self.credits_btn_rect
                         if r[0] <= x < r[0]+r[2] and r[1] <= y < r[1]+r[3]:
                             self.play_btn_pressed = True
                         
                         elif r2[0] <= x < r2[0]+r2[2] and r2[1] <= y < r2[1]+r2[3]:
                             self.tuto_btn_pressed = True
+                        
+                        elif r3[0] <= x < r3[0]+r3[2] and r3[1] <= y < r3[1]+r3[3]:
+                            self.credits_btn_pressed = True
                 
-                elif self.stage == Stage.WAITING_OPPONENT:
+                elif self.stage == Stage.WAITING_OPPONENT or self.stage == Stage.CREDITS:
                     if event.button == 1:
                         r = self.return_btn_rect
                         if r[0] <= x < r[0]+r[2] and r[1] <= y < r[1]+r[3]:
@@ -168,6 +183,7 @@ class Manager:
                     if event.button == 1:
                         r = self.play_btn_rect
                         r2 = self.tuto_btn_rect
+                        r3 = self.credits_btn_rect
                         if r[0] <= x < r[0]+r[2] and r[1] <= y < r[1]+r[3]:
                             if self.play_btn_pressed:
                                 self.click_sound.play()
@@ -181,8 +197,14 @@ class Manager:
                                 self.tuto_btn_pressed = False
                                 self.stage = Stage.TUTORIAL
                                 self.tutorial.start_time = time.time()
+                        
+                        elif r3[0] <= x < r3[0]+r3[2] and r3[1] <= y < r3[1]+r3[3]:
+                            if self.credits_btn_pressed:
+                                self.click_sound.play()
+                                self.credits_btn_pressed = False
+                                self.stage = Stage.CREDITS
 
-                elif self.stage == Stage.WAITING_OPPONENT:
+                elif self.stage == Stage.WAITING_OPPONENT or self.stage == Stage.CREDITS:
                     if event.button == 1:
                         r = self.return_btn_rect
                         if r[0] <= x < r[0]+r[2] and r[1] <= y < r[1]+r[3]:
@@ -265,6 +287,13 @@ class Manager:
         tx, ty = surf.get_width()/2-w/2, ty+100
         self.tuto_btn_rect = [tx-50, ty-10, w+100, h+20]
         pygame.draw.rect(surf, (133, 255, 255), self.tuto_btn_rect)
+        surf.blit(txt, [tx, ty])
+        
+        txt = self.font.render("Crédits", True, (0,0,0))
+        w, h = txt.get_size()
+        tx, ty = surf.get_width()/2-w/2, surf.get_height()-100-h
+        self.credits_btn_rect = [tx-50, ty-10, w+100, h+20]
+        pygame.draw.rect(surf, (133, 255, 255), self.credits_btn_rect)
         surf.blit(txt, [tx, ty])
     
     def render_waiting(self, surf):
@@ -448,6 +477,33 @@ class Manager:
             self.home_btn_rect = [tx-100, ty-10, w+200, h+20]
             pygame.draw.rect(surf, (133, 255, 255), self.home_btn_rect)
             surf.blit(txt, [surf.get_width()/2-txt.get_width()/2, surf.get_height()-75-txt.get_height()/2])
+    
+    def render_credits(self, surf):
+        surf.fill(0)
+        
+        W = surf.get_width()
+        W2 = W/2
+        y = 100
+        for section in self.credits:
+            title = self.credits_sect_font.render(section[0], True, (255,255,255))
+            surf.blit(title, [W2-title.get_width()/2, y])
+            y += title.get_height()
+            y += 20
+            
+            for line in section[1:]:
+                txt = self.credits_font.render(line, True, (255,255,255))
+                surf.blit(txt, [W2-txt.get_width()/2, y])
+                y += txt.get_height()
+                y += 10
+            
+            y += 60
+        
+        txt = self.font.render("Menu principal", True, (0,0,0))
+        w, h = txt.get_size()
+        tx, ty = surf.get_width()/2-w/2, surf.get_height()-h-100
+        self.return_btn_rect = [tx-100, ty-10, w+200, h+20]
+        pygame.draw.rect(surf, (133, 255, 255), self.return_btn_rect)
+        surf.blit(txt, [tx, ty])
     
     def play(self, send=False):
         print(f"play, send={send}")
