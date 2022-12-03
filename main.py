@@ -62,7 +62,7 @@ class Manager:
         self.tutorial = Tutorial(self, Stage)
         
         self.load_sounds()
-        with open(os.path.join("assets", "credits.json"), "r") as f:
+        with open(os.path.join("assets", "credits.json"), "r", encoding="utf-8") as f:
             self.credits = json.load(f)
         
         print(f"The code for this machine is: {self.sh.get_code()}")
