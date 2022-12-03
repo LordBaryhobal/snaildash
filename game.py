@@ -467,6 +467,6 @@ class Game:
             elif cur > 1:
                 i = cur-2
         
-        if i > 1:
+        if i > 1 and i != 255:
             self.manager.bonus_scores[1][i%2 + 1] += 1
         self.trail_changes.append((x,y,i))
