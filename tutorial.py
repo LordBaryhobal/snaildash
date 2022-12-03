@@ -137,6 +137,7 @@ class Tutorial:
                 clicked = True
                 self.main_menu_pressed = False
                 self.manager.stage = self.Stage.MAIN_MENU
+                self.slide = 0
         
         elif r2 and r2[0] <= x < r2[0]+r2[2] and r2[1] <= y < r2[1]+r2[3]:
             if self.prev_pressed:
