@@ -9,6 +9,7 @@ import random
 import os
 from tutorial import Tutorial
 import json
+from math import sin, pi
 
 WIDTH, HEIGHT = 1920, 1080
 
@@ -71,6 +72,20 @@ class Manager:
         
         else:
             self.join(code)
+        
+        self.start_time = time.time()
+        self.snail = []
+        for i in range(5):
+            red = pygame.image.load(os.path.join("assets","textures","snail","red",f"{i}.png"))
+            blue = pygame.image.load(os.path.join("assets","textures","snail","blue",f"{i}.png"))
+            red = pygame.transform.scale(red, [100, 100])
+            blue = pygame.transform.scale(blue, [100, 100])
+            self.snail.append((red, blue))
+        
+        self.stars = [
+            [random.randint(0, WIDTH), random.randint(-40, 40), random.random()]
+            for i in range(20)
+        ]
     
     def host(self):
         self.is_host = True
@@ -275,6 +290,34 @@ class Manager:
     def render_menu(self, surf):
         surf.fill(0)
         surf.blit(self.logo, [surf.get_width()/2-self.logo.get_width()/2, 0])
+        
+        for i, [x, y, v] in enumerate(self.stars):
+            """pygame.draw.circle(surf, (200,200,200), [
+                x,
+                self.logo.get_height()+50+self.snail[0][0].get_width()/2+y
+            ], 3)"""
+            pygame.draw.ellipse(surf, (150,150,150), [
+                x-15,
+                self.logo.get_height()+50+self.snail[0][0].get_width()/2+y - 2,
+                30,
+                4
+            ])
+            x -= v*20 + 15
+            x %= surf.get_width()
+            self.stars[i][0] = x
+        
+        t = time.time()-self.start_time
+        r = (t/8)%1
+        f = (t/0.5)%1
+        f = 4 - abs(f-0.5)*8
+        snail = self.snail[int(f)][self.game.player.i]
+        snail = pygame.transform.rotate(snail, -90)
+        w = surf.get_width()
+        x = r*w
+        dy = sin(10*pi*r)*20
+        surf.blit(snail, [x, self.logo.get_height()+50+dy])
+        surf.blit(snail, [x-w, self.logo.get_height()+50+dy])
+        
         txt = self.font.render("Jouer", True, (0,0,0))
         w, h = txt.get_size()
         tx, ty = surf.get_width()/2-w/2, surf.get_height()/2-h/2
