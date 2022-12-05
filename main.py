@@ -549,7 +549,6 @@ class Manager:
         surf.blit(txt, [tx, ty])
     
     def play(self, send=False):
-        print(f"play, send={send}")
         if send:
             self.sh.send(b"start")
         
