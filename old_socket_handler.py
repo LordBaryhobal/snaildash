@@ -1,11 +1,12 @@
 import socket
+from types import FunctionType
+from utils import toBase, fromBase
 import threading
-from utils import fromBase, toBase
 
 class SocketHandler:
     PORT = 46953
     
-    def __init__(self, on_receive):
+    def __init__(self, on_receive: FunctionType) -> None:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.connect(("8.8.8.8", 80))
         self.ip = s.getsockname()[0]
