@@ -6,54 +6,54 @@ class Bonus:
     MAX_BONUS = 4  # Maximum numbers of bonuses in the grid
     BONUS_CHANCE = 0.2  # Likelihood of a bonus appearing on each turn
     
-    def apply(self, x, y, game, player):
+    def apply(x, y, game, player):
         pass
     
-    def new_bonus(self, game):
+    def new_bonus(game):
         x, y = randint(0,game.WIDTH-1), randint(0,game.HEIGHT-1)
         id = randint(0,len(game.bonus)-1)
         if (x, y) in game.bonus_dict:
-            self.new_bonus(game)
+            Bonus.new_bonus(game)
             return
         for player in game.players:
-            if abs(player.x-x) < self.DISTANCE_MIN and abs(player.y-y) < self.DISTANCE_MIN:
-                self.new_bonus(game)
+            if abs(player.x-x) < Bonus.DISTANCE_MIN and abs(player.y-y) < Bonus.DISTANCE_MIN:
+                Bonus.new_bonus(game)
                 return
         game.bonus_list[(x, y)] = id
     
-    def try_spawn(self, game):
-        if len(game.bonus_dict) < self.MAX_BONUS and random() < self.BONUS_CHANCE:
-            self.new_bonus(game)
+    def try_spawn(game):
+        if len(game.bonus_dict) < Bonus.MAX_BONUS and random() < Bonus.BONUS_CHANCE:
+            Bonus.new_bonus(game)
 
 class Bombe:
     BOMB_SIZE = 5 # Drool bomb size in number of tiles
     
-    def apply(self, x, y, game, player):
+    def apply(x, y, game, player):
         game.use_bonus(player.i)
-        sx, sy = max(ceil(x-(self.BOMB_SIZE/2)),0), max(ceil(y-(self.BOMB_SIZE/2)), 0)
-        ex, ey = min(floor(x + self.BOMB_SIZE/2), game.WIDTH-1)+1, min(floor(y + self.BOMB_SIZE/2), game.HEIGHT-1)+1
+        sx, sy = max(ceil(x-(Bombe.BOMB_SIZE/2)),0), max(ceil(y-(Bombe.BOMB_SIZE/2)), 0)
+        ex, ey = min(floor(x + Bombe.BOMB_SIZE/2), game.WIDTH-1)+1, min(floor(y + Bombe.BOMB_SIZE/2), game.HEIGHT-1)+1
         t = player.i if player.poisoned <= 0 else player.i + 2
         for by in range(sy, ey):
             for bx in range(sx, ex):
                 game.set_trail(bx, by, t)
 
 class Row:
-    def apply(self, x, y, game, player):
+    def apply(x, y, game, player):
         game.use_bonus(player.i)
         t = player.i if player.poisoned <= 0 else player.i + 2
-        for rx in range(0,self.WIDTH):
+        for rx in range(0,game.WIDTH):
             game.set_trail(rx, y, t)
 
 class Column:
-    def apply(self, x, y, game, player):
+    def apply(x, y, game, player):
         game.use_bonus(player.i)
         t = player.i if player.poisoned <= 0 else player.i + 2
-        for ry in range(0,self.HEIGHT):
-            self.set_trail(x, ry, t)
+        for ry in range(0,game.HEIGHT):
+            game.set_trail(x, ry, t)
 
 class Magical_potion:
     REINFORCED_TIME = 4  # Number of tiles of reinforced drool for each potion
     
-    def apply(self, x, y, game, player):
+    def apply(x, y, game, player):
         game.use_bonus(player.i)
-        player.poisoned += self.POISON_TIME
+        player.poisoned += Magical_potion.POISON_TIME
