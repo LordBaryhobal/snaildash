@@ -1,4 +1,4 @@
-from math import floor, ceil, radians, sin, cos
+from math import radians, sin, cos, pi
 import time
 import random
 
@@ -21,6 +21,11 @@ class DisplayManager:
         self.gen_stars()
     
     def gen_stars(self):
+        self.main_menu_stars = [
+            [random.randint(0, self.manager.WIDTH), random.randint(-40, 40), random.random()]
+            for i in range(20)
+        ]
+        
         self.stars = []
         a = radians(random.randint(0,359))
         self.star_vx = cos(a)*0.005
@@ -77,6 +82,8 @@ class DisplayManager:
         
         if stage in [Stage.MAIN_MENU, Stage.WAITING_OPPONENT, Stage.CREDITS]:
             mgr.gui.render(surf)
+            if stage == Stage.MAIN_MENU:
+                self.render_main_menu(surf)
         
         elif stage == Stage.COUNTDOWN:
             self.render_game(surf)
@@ -111,6 +118,31 @@ class DisplayManager:
         
         elif stage == Stage.TUTORIAL:
             mgr.tutorial.render(surf)
+    
+    def render_main_menu(self, surf):
+        oy = 0.25*surf.get_height()
+        for i, [x, y, v] in enumerate(self.main_menu_stars):
+            pygame.draw.ellipse(surf, (150,150,150), [
+                x-15,
+                oy+y-2,
+                30,
+                4
+            ])
+            x -= v*20 + 15
+            x %= surf.get_width()
+            self.main_menu_stars[i][0] = x
+        
+        t = time.time()-self.manager.startup_time
+        r = (t/8)%1
+        f = (t/0.5)%1
+        f = 4 - abs(f-0.5)*8
+        snail = self.snail[int(f)][self.manager.game.player.i]
+        snail = pygame.transform.rotate(snail, -90)
+        w = surf.get_width()
+        x = r*w
+        dy = sin(10*pi*r)*20
+        surf.blit(snail, [x, oy+dy-snail.get_height()/2])
+        surf.blit(snail, [x-w, oy+dy-snail.get_height()/2])
 
     def render_game(self, surf, render_players=True):
         cur_time = self.manager.time()

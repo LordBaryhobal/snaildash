@@ -132,13 +132,6 @@ class Manager:
             if rem <= 0:
                 self.stage = Stage.GAME_TO_BREAKDOWN
                 self.game_to_breakdown_start = self.time()
-                
-                """p1, p2 = self.game.players
-                ts = self.game.ts
-                ox, oy = self.win.get_width()/2 - self.game.WIDTH/2*ts, self.win.get_height()/2 - self.game.HEIGHT/2*ts
-                
-                self.p1Ps, self.p2Ps = [ox+(p1.x+0.5)*ts, oy+(p1.y+0.5)*ts], [ox+(p2.x+0.5)*ts, oy+(p2.y+0.5)*ts]
-                self.p1Pe, self.p2Pe = [ox, oy], [ox+self.game.WIDTH*ts, oy]"""
         
         elif self.stage == Stage.GAME_TO_BREAKDOWN:
             rem = self.game_to_breakdown_start+self.BREAKDOWN_IN_DUR-self.time()
