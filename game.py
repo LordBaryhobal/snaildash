@@ -1,4 +1,8 @@
 from player import Player
+import numpy as np
+import random
+from math import radians, cos, sin
+from bonus import Bonus, Bomb, Row, Column, MagicalPotion
 
 class Game:
     WIDTH = 15  # Width of the grid
@@ -7,11 +11,6 @@ class Game:
     DURATION = 89  # Duration in seconds of the whole game
     COLLIDE_DURATION = 1  # Duration in seconds of the collision animation
     COLLIDE_RADIUS = 4  # Radius in number of tiles of the collision shockwave
-    BOMB_SIZE = 5  # Drool bomb size in number of tiles
-    DISTANCE_MIN = 4  # Minimum distance between players and new bonuses
-    MAX_BONUS = 4  # Maximum numbers of bonuses in the grid
-    BONUS_CHANCE = 0.2  # Likelihood of a bonus appearing on each turn
-    REINFORCED_TIME = 4  # Number of tiles of reinforced drool for each potion
     
     def __init__(self, manager):
         self.manager = manager
@@ -19,6 +18,22 @@ class Game:
             Player(self, 0, 0, 0),
             Player(self, 1, self.WIDTH-1, self.HEIGHT-1)
         ]
+        self.bonus = Bonus
+        self.Bonus_list = [Bomb, Row, Column, MagicalPotion]
+        self.reset()
+    
+    def reset(self):
+        self.trails = np.array([self.HEIGHT, self.WIDTH], dtype="int8").fill(-1)
+        self.players[0].reset(0, 0)
+        self.players[1].reset(self.WIDTH-1, self.HEIGHT-1)
+        
+        self.collide_start = 0
+        self.collide_pos = [0,0]
+        self.trail_changes = []
+        self.remaining = self.TIMER
+
+        self.drool = np.array([self.HEIGHT, self.WIDTH], dtype="int8").fill(-1)
+        self.bonus_dict = {}
     
     def is_host(self):
         return self.manager.is_host()
