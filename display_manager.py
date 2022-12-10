@@ -236,10 +236,14 @@ class DisplayManager:
         game = mgr.game
         t = mgr.time()
         
-        r_bar = mgr.breakdown_start+mgr.BREAKDOWN_BAR_DUR-mgr.BREAKDOWN_BAR_PAUSE-mgr.BREAKDOWN_BAR_END_DUR-t
-        r_end = mgr.breakdown_start+mgr.BREAKDOWN_BAR_DUR-t
-        r_bar = 1-r_bar/(mgr.BREAKDOWN_BAR_DUR-mgr.BREAKDOWN_BAR_PAUSE-mgr.BREAKDOWN_BAR_END_DUR)
-        r_end = 1-r_end/mgr.BREAKDOWN_BAR_END_DUR
+        bar_fill_dur = mgr.BREAKDOWN_BAR_DUR-mgr.BREAKDOWN_BAR_PAUSE-mgr.BREAKDOWN_BAR_END_DUR
+        bar_end_dur = mgr.BREAKDOWN_BAR_END_DUR
+        start = mgr.breakdown_start
+        
+        r_bar = start + bar_fill_dur - t
+        r_end = start + bar_end_dur - t
+        r_bar = 1-r_bar/(bar_fill_dur)
+        r_end = 1-r_end/bar_end_dur
         r_bar = max(0, min(1, r_bar))
         
         red, blue = game.get_trail_count()
