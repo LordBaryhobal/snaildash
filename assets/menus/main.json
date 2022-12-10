@@ -1,0 +1,35 @@
+[
+    {
+        "type": "text",
+        "x": 0.5,
+        "y": 0.1,
+        "txt": "Snaildash",
+        "font_family": "file:OpenSans-ExtraBoldItalic.ttf",
+        "size": 100,
+        "color": [133, 255, 255]
+    },
+    {
+        "type": "button",
+        "x": 0.5,
+        "y": 0.4,
+        "width": 0.25,
+        "txt": "Jouer",
+        "name": "main.play"
+    },
+    {
+        "type": "button",
+        "x": 0.5,
+        "y": 0.6,
+        "width": 0.25,
+        "txt": "Comment ça marche",
+        "name": "main.tutorial"
+    },
+    {
+        "type": "button",
+        "x": 0.5,
+        "y": 0.9,
+        "width": 0.25,
+        "txt": "Crédits",
+        "name": "main.credits"
+    }
+]

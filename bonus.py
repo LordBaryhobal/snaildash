@@ -26,6 +26,7 @@ class Bonus:
             Bonus.new_bonus(game)
 
 class Bomb:
+    TEXTURE = "bomb2.png"
     BOMB_SIZE = 5 # Drool bomb size in number of tiles
     
     def apply(x, y, game, player):
@@ -38,6 +39,7 @@ class Bomb:
                 game.set_trail(bx, by, t)
 
 class Row:
+    TEXTURE = "row.png"
     def apply(x, y, game, player):
         game.use_bonus(player.i)
         t = player.i if player.poisoned <= 0 else player.i + 2
@@ -45,6 +47,7 @@ class Row:
             game.set_trail(rx, y, t)
 
 class Column:
+    TEXTURE = "column.png"
     def apply(x, y, game, player):
         game.use_bonus(player.i)
         t = player.i if player.poisoned <= 0 else player.i + 2
@@ -52,6 +55,7 @@ class Column:
             game.set_trail(x, ry, t)
 
 class MagicalPotion:
+    TEXTURE = "poison.png"
     REINFORCED_TIME = 4  # Number of tiles of reinforced drool for each potion
     
     def apply(x, y, game, player):

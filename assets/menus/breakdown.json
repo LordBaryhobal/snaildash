@@ -1,0 +1,10 @@
+[
+    {
+        "type": "button",
+        "x": 0.5,
+        "y": 0.9,
+        "width": 0.25,
+        "txt": "Menu principal",
+        "name": "breakdown.main"
+    }
+]

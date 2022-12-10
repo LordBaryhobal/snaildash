@@ -3,13 +3,15 @@ import time
 
 import pygame
 
+from display_manager import DisplayManager
 from font_manager import FontManager
 from game import Game
+from gui import GUI
 from socket_handler import SocketHandler
 from stage import Stage
 
 class Manager:
-    WIDTH, HEIGHT = 1920, 1080
+    WIDTH, HEIGHT = 800, 800 #1920, 1080
     FPS = 30
     
     COUNTDOWN_DUR = 4  # Duration in seconds of the start countdown
@@ -18,8 +20,6 @@ class Manager:
     BREAKDOWN_BAR_PAUSE = 0.5  # Duration in seconds before the progress bar end fill
     BREAKDOWN_BAR_END_DUR = 0.2  # Duration in seconds of the bar end fill
     BREAKDOWN_INTERVAL = 1  # Interval in seconds between each bonus score reveal
-    
-    CD_COLOR = (133, 255, 255)
 
     def __init__(self):
         pygame.init()
@@ -28,6 +28,8 @@ class Manager:
         self.stage = Stage.MAIN_MENU
         self.socket_handler = SocketHandler(self)
         self.game = Game(self)
+        self.gui = GUI()
+        self.display_manager = DisplayManager(self)
         self._is_host = False
         
         self.init()
@@ -45,7 +47,7 @@ class Manager:
             self.join(code)
         
         self.startup_time = time.time()
-        self.win = pygame.display.set_mode([self.WIDTH, self.HEIGHT], pygame.FULLSCREEN)
+        self.win = pygame.display.set_mode([self.WIDTH, self.HEIGHT], pygame.RESIZABLE)#, pygame.FULLSCREEN)
     
     def host(self):
         self._is_host = True
@@ -67,7 +69,7 @@ class Manager:
             pygame.display.set_caption(f"Snaildash - {self.clock.get_fps():.2f}fps")
             events = pygame.event.get()
             self.handle_events(events)
-            self.render(self.win)
+            self.display_manager.render(self.win)
             pygame.display.flip()
             self.clock.tick(self.FPS)
     
@@ -129,50 +131,6 @@ class Manager:
                 self.stage = Stage.BREAKDOWN_BONUSES
                 self.finished_breakdown = False
                 self.breakdown_start = self.time()
-    
-    def render(self, surf):
-        if self.stage == Stage.MAIN_MENU:
-            self.gui.render(surf)
-        
-        elif self.stage == Stage.WAITING_OPPONENT:
-            self.gui.render(surf)
-        
-        elif self.stage == Stage.COUNTDOWN:
-            self.game.render(surf)
-            
-            r = max(0, self.countdown_start+self.COUNTDOWN - time.time())
-            rem_sec = round(r)
-            rem_sec = "Go" if rem_sec == 0 else str(rem_sec)
-            font = FontManager.get("arial", 50, True, True)
-            txt = font.render(rem_sec, True, self.CD_COLOR)
-            y0 = surf.get_height()/2-txt.get_height()/2
-            y1 = -txt.get_height()
-            
-            # Animation
-            r = 1 - (r - rem_sec)
-            r = max(0, 2.5*(r-0.6))
-            r = r**2
-            y = r*(y1-y0)+y0
-
-            surf.blit(txt, [surf.get_width()/2-txt.get_width()/2, y])
-        
-        elif self.stage == Stage.IN_GAME:
-            self.game.render(surf)
-        
-        elif self.stage == Stage.GAME_TO_BREAKDOWN:
-            self.game.render_breakdown_transition(surf)
-        
-        elif self.stage == Stage.BREAKDOWN_BAR:
-            self.game.render_breakdown_bar(surf)
-        
-        elif self.stage == Stage.BREAKDOWN_BONUSES:
-            self.game.render_breakdown_bonuses(surf)
-        
-        elif self.stage == Stage.TUTORIAL:
-            self.tutorial.render(surf)
-        
-        elif self.stage == Stage.CREDITS:
-            self.gui.render(surf)
     
     def on_mouse_down(self, event):
         self.gui.on_mouse_down(event)

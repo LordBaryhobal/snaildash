@@ -6,7 +6,7 @@ import pygame
 from font_manager import FontManager
 
 class GUI:
-    MENUS = ["main", "waiting", "credits"]
+    MENUS = ["main", "waiting", "credits", "breakdown"]
     
     def __init__(self):
         self.menus = {}
@@ -41,7 +41,6 @@ class Menu:
         self.components = []
         for c in data:
             type_ = c["type"]
-            x, y = c["x"], c["y"]
             
             if type_ == "button":
                 cls = Button
@@ -50,7 +49,7 @@ class Menu:
             else:
                 continue
             
-            self.components.append(cls(self, x, y, **c))
+            self.components.append(cls(self, **c))
     
     def render(self, surf):
         self.width, self.height = surf.get_size()
@@ -79,7 +78,7 @@ class Button:
     COLOR = (133, 255, 255)
     TXT_COLOR = (0, 0, 0)
     
-    def __init__(self, menu, x, y, txt="", name="", width=1):
+    def __init__(self, menu, x, y, txt="", name="", width=1, color=TXT_COLOR, bg=COLOR, **kwargs):
         self.menu = menu
         self.x = x
         self.y = y
@@ -88,31 +87,34 @@ class Button:
         self.width = width
         self.rect = [0,0,0,0]
         self.pressed = False
+        self.color = color
+        self.bg = bg
     
     def render(self, surf):
         x = self.menu.width*self.x
         y = self.menu.height*self.y
         width = self.menu.width*self.width
         font = FontManager.get("arial", 30)
-        txt = font.render(self.txt, True, self.TXT_COLOR)
+        txt = font.render(self.txt, True, self.color)
         height = txt.get_height()+20
         self.rect = [x-width/2, y-height/2, width, height]
-        pygame.draw.rect(surf, self.COLOR, self.rect)
+        pygame.draw.rect(surf, self.bg, self.rect)
         surf.blit(txt, [x-txt.get_width()/2, y-txt.get_height()/2])
 
 class Text:
     COLOR = (255, 255, 255)
     
-    def __init__(self, menu, x, y, txt="", font_family="arial", size=20, align="center"):
+    def __init__(self, menu, x, y, txt="", font_family="arial", size=30, align="center", color=COLOR, **kwargs):
         self.menu = menu
         self.x = x
         self.y = y
         self.txt = txt
         self.font = FontManager.get(font_family, size)
         self.align = align
+        self.color = color
     
     def render(self, surf):
-        txt = self.font.render(self.txt, True, self.COLOR)
+        txt = self.font.render(self.txt, True, self.color)
         x = self.menu.width*self.x
         y = self.menu.height*self.y
         y = y-txt.get_height()/2

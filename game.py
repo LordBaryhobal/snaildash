@@ -19,7 +19,7 @@ class Game:
             Player(self, 1, self.WIDTH-1, self.HEIGHT-1)
         ]
         self.bonus = Bonus
-        self.Bonus_list = [Bomb, Row, Column, MagicalPotion]
+        self.bonus_list = [Bomb, Row, Column, MagicalPotion]
         self.reset()
     
     def reset(self):
