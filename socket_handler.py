@@ -5,13 +5,13 @@ from utils import fromBase, toBase
 class SocketHandler:
     PORT = 46953
     
-    def __init__(self, on_receive):
+    def __init__(self, manager):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.connect(("8.8.8.8", 80))
         self.ip = s.getsockname()[0]
         s.close()
         
-        self.on_receive = on_receive
+        self.manager = manager
         self.socket = None
         self.running = True
     
@@ -58,4 +58,8 @@ class SocketHandler:
             data = self.socket.recv(2048)
             if not data:
                 break
-            self.on_receive(data)
+            self.manager.on_receive(data)
+    
+    def quit(self):
+        self.running = False
+        self.socket.close()
