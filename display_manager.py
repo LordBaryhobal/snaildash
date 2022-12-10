@@ -383,13 +383,3 @@ class DisplayManager:
             
             if blue >= red:
                 pygame.draw.circle(surf, Player.COLORS[1], [x2, y], (x2-x1)/16, 2)
-        
-        
-        # TODO GUI button at y = 0.9
-        """if step > len(bonus_scores):
-            txt = self.font.render("Menu principal", True, (0,0,0))
-            w, h = txt.get_size()
-            tx, ty = surf.get_width()/2-w/2, surf.get_height()-75-h/2
-            self.home_btn_rect = [tx-100, ty-10, w+200, h+20]
-            pygame.draw.rect(surf, (133, 255, 255), self.home_btn_rect)
-            surf.blit(txt, [surf.get_width()/2-txt.get_width()/2, surf.get_height()-75-txt.get_height()/2])"""
