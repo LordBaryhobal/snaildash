@@ -11,6 +11,7 @@ class GUI:
     def __init__(self):
         self.menus = {}
         self._menu = self.MENUS[0]
+        self.visible = True
         self.load_menus()
 
     def load_menus(self):
@@ -19,7 +20,8 @@ class GUI:
                 self.menus[m] = Menu(json.load(f))
 
     def render(self, surf):
-        self.get_menu().render(surf)
+        if self.visible:
+            self.get_menu().render(surf)
     
     def get_menu(self):
         return self.menus[self._menu]

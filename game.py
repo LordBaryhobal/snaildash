@@ -23,7 +23,7 @@ class Game:
         self.reset()
     
     def reset(self):
-        self.trails = np.array([self.HEIGHT, self.WIDTH], dtype="int8").fill(-1)
+        self.trails = np.full([self.HEIGHT, self.WIDTH], -1, dtype="int8")
         self.players[0].reset(0, 0)
         self.players[1].reset(self.WIDTH-1, self.HEIGHT-1)
         
@@ -31,8 +31,10 @@ class Game:
         self.collide_pos = [0,0]
         self.trail_changes = []
         self.remaining = self.TIMER
+        self.start_time = 0
+        self.turn_start = 0
 
-        self.drool = np.array([self.HEIGHT, self.WIDTH], dtype="int8").fill(-1)
+        self.drool = np.full([self.HEIGHT, self.WIDTH], -1, dtype="int8")
         self.bonus_dict = {}
     
     def is_host(self):

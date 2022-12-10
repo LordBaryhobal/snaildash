@@ -4,10 +4,10 @@ import time
 import pygame
 
 from display_manager import DisplayManager
-from font_manager import FontManager
 from game import Game
 from gui import GUI
 from socket_handler import SocketHandler
+from sound_manager import SoundManager
 from stage import Stage
 
 class Manager:
@@ -96,12 +96,33 @@ class Manager:
             
             elif event.type == pygame.USEREVENT:
                 self.game.start_turn()
+            
+            elif event.type == pygame.USEREVENT+1:
+                SoundManager.get(["click.wav"]).play()
+                
+                name = event.name
+                if name == "main.play":
+                    self.socket_handler.send(b"ready")
+                    self.gui.set_menu("waiting")
+                    self.stage = Stage.WAITING_OPPONENT
+                
+                elif name == "main.tutorial":
+                    self.tutorial.start_time = time.time()
+                    self.stage = Stage.TUTORIAL
+                
+                elif name == "main.credits":
+                    self.gui.set_menu("credits")
+                    self.stage = Stage.CREDITS
+                
+                elif name in ["waiting.main", "credits.main", "breakdown.main"]:
+                    self.gui.set_menu("main")
+                    self.stage = Stage.MAIN_MENU
         
         if self.stage == Stage.COUNTDOWN:
-            rem = self.countdown_start+self.COUNTDOWN-time.time()
+            rem = self.countdown_start+self.COUNTDOWN_DUR-time.time()
             if rem <= 0:
                 self.stage = Stage.IN_GAME
-                pygame.mixer.music.play()
+                #pygame.mixer.music.play()
                 self.game.start_time = self.time()
                 self.game.start_turn()
 
@@ -187,3 +208,14 @@ class Manager:
                 
                 else:
                     pygame.event.post(pygame.event.Event(pygame.USEREVENT))
+    
+    def play(self, send=False):
+        if send:
+            self.socket_handler.send(b"start")
+        
+        self.game.reset()
+        
+        self.countdown_start = time.time()
+        self.stage = Stage.COUNTDOWN
+        self.time_origin = time.time()
+        self.gui.visible = False

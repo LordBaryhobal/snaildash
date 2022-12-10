@@ -46,7 +46,7 @@ class DisplayManager:
         self.snail = []
         for i in range(5):
             red = TextureManager.get(("snail", "red", f"{i}.png"), self.ts*2)
-            blue = TextureManager.get(("snail", "red", f"{i}.png"), self.ts*2)
+            blue = TextureManager.get(("snail", "blue", f"{i}.png"), self.ts*2)
             self.snail.append((red, blue))
             
         self.bonus_textures = []
@@ -73,13 +73,15 @@ class DisplayManager:
             self.ts = ts
             self.resize()
         
+        surf.fill(0)
+        
         if stage in [Stage.MAIN_MENU, Stage.WAITING_OPPONENT, Stage.CREDITS]:
             mgr.gui.render(surf)
         
         elif stage == Stage.COUNTDOWN:
             self.render_game(surf)
             
-            r = max(0, mgr.countdown_start+mgr.COUNTDOWN - time.time())
+            r = max(0, mgr.countdown_start+mgr.COUNTDOWN_DUR - time.time())
             rem_sec = round(r)
             rem_sec = "Go" if rem_sec == 0 else str(rem_sec)
             font = FontManager.get("arial", 50, True, True)
@@ -88,7 +90,7 @@ class DisplayManager:
             y1 = -txt.get_height()
             
             # Animation
-            r = 1 - (r - rem_sec)
+            r = 1 - (r - round(r))
             r = max(0, 2.5*(r-0.6))
             r = r**2
             y = r*(y1-y0)+y0
@@ -113,8 +115,6 @@ class DisplayManager:
     def render_game(self, surf, render_players=True):
         cur_time = self.manager.time()
         game = self.manager.game
-        
-        surf.fill(0)
         
         ox, oy = surf.get_width()/2 - game.WIDTH/2*self.ts, surf.get_height()/2 - game.HEIGHT/2*self.ts
 
@@ -230,8 +230,6 @@ class DisplayManager:
         surf.blit(blue, [p2P[0]-blue.get_width()/2, p2P[1]-blue.get_height()/2])
     
     def render_breakdown_bar(self, surf):
-        surf.fill(0)
-        
         mgr = self.manager
         game = mgr.game
         t = mgr.time()
@@ -387,3 +385,7 @@ class DisplayManager:
             
             if blue >= red:
                 pygame.draw.circle(surf, Player.COLORS[1], [x2, y], (x2-x1)/16, 2)
+
+        if step > len(bonus_scores) and not mgr.gui.visible:
+            mgr.gui.set_menu("breakdown")
+            mgr.gui.visible = True
