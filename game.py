@@ -1,7 +1,6 @@
 from player import Player
 import numpy as np
-import random
-from math import radians, cos, sin
+import pygame
 from bonus import Bonus, Bomb, Row, Column, MagicalPotion
 
 class Game:
@@ -45,3 +44,38 @@ class Game:
 
     def init_guest(self):
         self.player = self.players[1]
+    
+    def get_trail_count(self):
+        return (np.count_nonzero(self.game.trails == 0) + np.count_nonzero(self.game.trails == 2), \
+        np.count_nonzero(self.game.trails == 1) + np.count_nonzero(self.game.trails == 3))
+    
+    def start_turn(self):
+        self.turn_start = self.manager.time()
+        self.player.synced = False
+        self.trail_changes = []
+        for player in self.players:
+            player.lx, player.ly = player.x, player.y
+            player.x, player.y = player.nx, player.ny
+            player.dir %= 4
+            player.dash = False
+            player.reinforced = max(player.reinforced-1, 0)
+    
+    def handle_key(self, event):
+        ndir = self.player.dir%4
+        if event.key == pygame.K_w or event.key == pygame.K_UP:
+            ndir = 3
+        
+        elif event.key == pygame.K_s or event.key == pygame.K_DOWN:
+            ndir = 1
+        
+        elif event.key == pygame.K_a or event.key == pygame.K_LEFT:
+            ndir = 2
+        
+        elif event.key == pygame.K_d or event.key == pygame.K_RIGHT:
+            ndir = 0
+        if ((event.mod & pygame.KMOD_LSHIFT or event.key == pygame.K_SPACE) and self.player.candash()) or self.player.dash:
+            if not self.player.dash:
+                self.player.dash = True
+                self.player.usedash()
+            ndir += 4
+        self.player.dir = ndir
