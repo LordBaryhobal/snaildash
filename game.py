@@ -2,7 +2,7 @@ from player import Player
 import numpy as np
 import random
 from math import radians, cos, sin
-from bonus import Bonus, Bombe, Row, Column, Magical_potion
+from bonus import Bonus, Bomb, Row, Column, MagicalPotion
 
 class Game:
     WIDTH = 15  # Width of the grid
@@ -19,7 +19,7 @@ class Game:
             Player(self, 1, self.WIDTH-1, self.HEIGHT-1)
         ]
         self.bonus = Bonus
-        self.Bonus_list = [Bombe, Row, Column, Magical_potion]
+        self.Bonus_list = [Bomb, Row, Column, MagicalPotion]
         self.reset()
     
     def reset(self):

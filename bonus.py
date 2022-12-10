@@ -25,13 +25,13 @@ class Bonus:
         if len(game.bonus_dict) < Bonus.MAX_BONUS and random() < Bonus.BONUS_CHANCE:
             Bonus.new_bonus(game)
 
-class Bombe:
+class Bomb:
     BOMB_SIZE = 5 # Drool bomb size in number of tiles
     
     def apply(x, y, game, player):
         game.use_bonus(player.i)
-        sx, sy = max(ceil(x-(Bombe.BOMB_SIZE/2)),0), max(ceil(y-(Bombe.BOMB_SIZE/2)), 0)
-        ex, ey = min(floor(x + Bombe.BOMB_SIZE/2), game.WIDTH-1)+1, min(floor(y + Bombe.BOMB_SIZE/2), game.HEIGHT-1)+1
+        sx, sy = max(ceil(x-(Bomb.BOMB_SIZE/2)),0), max(ceil(y-(Bomb.BOMB_SIZE/2)), 0)
+        ex, ey = min(floor(x + Bomb.BOMB_SIZE/2), game.WIDTH-1)+1, min(floor(y + Bomb.BOMB_SIZE/2), game.HEIGHT-1)+1
         t = player.i if player.poisoned <= 0 else player.i + 2
         for by in range(sy, ey):
             for bx in range(sx, ex):
@@ -51,9 +51,9 @@ class Column:
         for ry in range(0,game.HEIGHT):
             game.set_trail(x, ry, t)
 
-class Magical_potion:
+class MagicalPotion:
     REINFORCED_TIME = 4  # Number of tiles of reinforced drool for each potion
     
     def apply(x, y, game, player):
         game.use_bonus(player.i)
-        player.poisoned += Magical_potion.POISON_TIME
+        player.poisoned += MagicalPotion.POISON_TIME
