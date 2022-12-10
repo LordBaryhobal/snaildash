@@ -11,7 +11,7 @@ class Bonus:
     
     def new_bonus(game):
         x, y = randint(0,game.WIDTH-1), randint(0,game.HEIGHT-1)
-        id = randint(0,len(game.bonus)-1)
+        id = randint(0,len(game.bonus_list)-1)
         if (x, y) in game.bonus_dict:
             Bonus.new_bonus(game)
             return
@@ -19,7 +19,7 @@ class Bonus:
             if abs(player.x-x) < Bonus.DISTANCE_MIN and abs(player.y-y) < Bonus.DISTANCE_MIN:
                 Bonus.new_bonus(game)
                 return
-        game.bonus_list[(x, y)] = id
+        game.bonus_dict[(x, y)] = id
     
     def try_spawn(game):
         if len(game.bonus_dict) < Bonus.MAX_BONUS and random() < Bonus.BONUS_CHANCE:
