@@ -9,6 +9,7 @@ from gui import GUI
 from socket_handler import SocketHandler
 from sound_manager import SoundManager
 from stage import Stage
+from tutorial import Tutorial
 
 class Manager:
     WIDTH, HEIGHT = 800, 800 #1920, 1080
@@ -29,6 +30,7 @@ class Manager:
         self.socket_handler = SocketHandler(self)
         self.game = Game(self)
         self.gui = GUI()
+        self.tutorial = Tutorial(self)
         self.display_manager = DisplayManager(self)
         self._is_host = False
         
@@ -108,15 +110,22 @@ class Manager:
                 
                 elif name == "main.tutorial":
                     self.tutorial.start_time = time.time()
+                    self.gui.set_menu("tutorial")
                     self.stage = Stage.TUTORIAL
                 
                 elif name == "main.credits":
                     self.gui.set_menu("credits")
                     self.stage = Stage.CREDITS
                 
-                elif name in ["waiting.main", "credits.main", "breakdown.main"]:
+                elif name in ["waiting.main", "credits.main", "breakdown.main", "tutorial.main"]:
                     self.gui.set_menu("main")
                     self.stage = Stage.MAIN_MENU
+                
+                elif name == "tutorial.prev":
+                    self.tutorial.prev_slide()
+                
+                elif name == "tutorial.next":
+                    self.tutorial.next_slide()
         
         if self.stage == Stage.COUNTDOWN:
             rem = self.countdown_start+self.COUNTDOWN_DUR-time.time()

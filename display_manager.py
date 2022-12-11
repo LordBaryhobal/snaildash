@@ -80,12 +80,12 @@ class DisplayManager:
         
         surf.fill(0)
         
-        if stage in [Stage.MAIN_MENU, Stage.WAITING_OPPONENT, Stage.CREDITS]:
+        if stage in [Stage.MAIN_MENU, Stage.WAITING_OPPONENT, Stage.CREDITS, Stage.TUTORIAL]:
             mgr.gui.render(surf)
             if stage == Stage.MAIN_MENU:
                 self.render_main_menu(surf)
         
-        elif stage == Stage.COUNTDOWN:
+        if stage == Stage.COUNTDOWN:
             self.render_game(surf)
             
             r = max(0, mgr.countdown_start+mgr.COUNTDOWN_DUR - time.time())

@@ -1,0 +1,29 @@
+[
+    {
+        "type": "button",
+        "x": 60,
+        "y": 60,
+        "pos": "absolute",
+        "margin": 20,
+        "txt": "Menu principal",
+        "name": "tutorial.main"
+    },
+    {
+        "type": "button",
+        "x": 60,
+        "y": -60,
+        "pos": "absolute",
+        "margin": 20,
+        "txt": "Précédent",
+        "name": "tutorial.prev"
+    },
+    {
+        "type": "button",
+        "x": -60,
+        "y": -60,
+        "pos": "absolute",
+        "margin": 20,
+        "txt": "Suivant",
+        "name": "tutorial.next"
+    }
+]
