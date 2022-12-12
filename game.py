@@ -48,8 +48,8 @@ class Game:
         self.player = self.players[1]
     
     def get_trail_count(self):
-        return (np.count_nonzero(self.game.trails == 0) + np.count_nonzero(self.game.trails == 2), \
-        np.count_nonzero(self.game.trails == 1) + np.count_nonzero(self.game.trails == 3))
+        return (np.count_nonzero(self.trails == 0) + np.count_nonzero(self.trails == 2), \
+        np.count_nonzero(self.trails == 1) + np.count_nonzero(self.trails == 3))
     
     def start_turn(self):
         self.turn_start = self.manager.time()
@@ -94,7 +94,7 @@ class Game:
                 
                 player.nx, player.ny = x2, y2
                 if player.dir > 3:
-                    self.manager.bonus_scores[2][player.i+1] += 1
+                    player.dashed_count += 1
                     dx, dy = Player.OFFSETS[player.dir%4]
                     for i in range(Player.DASH_SIZE):
                         tx, ty = x+dx*i, y+dy*i
@@ -116,7 +116,7 @@ class Game:
                     player.add_dashscore()
                 pos = (player.nx, player.ny)
                 if pos in self.bonus_dict:
-                    self.bonus[self.bonus_dict[pos]].apply(*pos, self, player)
+                    self.bonus_list[self.bonus_dict[pos]].apply(*pos, self, player)
                     self.bonus_dict.pop(pos)
             for x, y, i in self.trail_changes:
                 self.trails[y, x] = -1 if i == 255 else i
@@ -149,7 +149,7 @@ class Game:
                     self.collide(center)
                 for cell in p2_cells:
                     if cell in self.bonus_dict:
-                        self.bonus[self.bonus_dict[cell]].apply(*cell, self, p2)
+                        self.bonus_list[self.bonus_dict[cell]].apply(*cell, self, p2)
                         self.bonus_dict.pop(cell)
         else:
             if p2.dir <=3:
@@ -162,7 +162,7 @@ class Game:
                     self.collide(center)
                 for cell in p1_cells:
                     if cell in self.bonus_dict:
-                        self.bonus[self.bonus_dict[cell]].apply(*cell, self, p1)
+                        self.bonus_list[self.bonus_dict[cell]].apply(*cell, self, p1)
                         self.bonus_dict.pop(cell)
             else:
                 #double dash
@@ -172,10 +172,10 @@ class Game:
                     cx1, cy1 = p1.x + dx_1*i, p1.y + dy_1*i
                     cx2, cy2 = p2.x + dx_2*i, p2.y + dy_2*i
                     if (cx1, cy1) in self.bonus_dict:
-                        self.bonus[self.bonus_dict[(cx1, cy1)]].apply(cx1, cy1, self, p1)
+                        self.bonus_list[self.bonus_dict[(cx1, cy1)]].apply(cx1, cy1, self, p1)
                         self.bonus_dict.pop((cx1, cy1))
                     if (cx2, cy2) in self.bonus_dict:
-                        self.bonus[self.bonus_dict[(cx2, cy2)]].apply(cx2, cy2, self, p2)
+                        self.bonus_list[self.bonus_dict[(cx2, cy2)]].apply(cx2, cy2, self, p2)
                         self.bonus_dict.pop((cx2, cy2))
                     if (cx1, cy1) == (cx2, cy2):
                         center = (cx1, cy1)
@@ -257,14 +257,16 @@ class Game:
                 msg += struct.pack(">BBB", x,y,i)
             
             msg += struct.pack(">dBB", self.collide_start, self.collide_pos[0], self.collide_pos[1])
-            msg += struct.pack(">B", len(self.manager.bonus_scores))
-            for n, r, b in self.manager.bonus_scores:
+            bonus_scores = self.manager.get_bonus_scores()
+            msg += struct.pack(">B", len(bonus_scores))
+            for n, r, b in bonus_scores:
                 msg += struct.pack(">II", r, b)
             
         else:
             msg = b"turnEnd" + struct.pack(">BBBBBBBB", x1,y1,d1,ds1,x2,y2,d2,ds2)
         
         self.manager.socket_handler.send(msg)
+    
     def set_trail(self, x, y, i):
         if i != -1 and i != 255:
             cur = self.trails[y,x]
@@ -275,5 +277,6 @@ class Game:
                 i = cur-2
         
         if i > 1 and i != 255:
-            self.manager.bonus_scores[1][i%2 + 1] += 1
+            self.players[i%2].reinforced_placed += 1
+        
         self.trail_changes.append((x,y,i))

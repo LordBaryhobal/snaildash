@@ -39,7 +39,7 @@ class DisplayManager:
         self.drool_textures = []
         for i in range(16):
             normal = TextureManager.get(("drool", f"{i}.png"), self.ts*2)
-            reinforced = TextureManager.get(("drool", f"{i}.png"), self.ts*2)
+            reinforced = TextureManager.get(("drool_reinforced", f"{i}.png"), self.ts*2)
             red, blue = normal.copy(), normal.copy()
             redr, bluer = reinforced.copy(), reinforced.copy()
             red.fill(Player.TRAIL_COLORS[0]+(255,), None, pygame.BLEND_RGBA_MULT)
@@ -80,7 +80,7 @@ class DisplayManager:
         
         surf.fill(0)
         
-        if stage in [Stage.MAIN_MENU, Stage.WAITING_OPPONENT, Stage.CREDITS, Stage.TUTORIAL]:
+        if stage in [Stage.MAIN_MENU, Stage.WAITING_OPPONENT, Stage.CREDITS, Stage.TUTORIAL, Stage.BREAKDOWN_BONUSES]:
             mgr.gui.render(surf)
             if stage == Stage.MAIN_MENU:
                 self.render_main_menu(surf)
@@ -229,7 +229,7 @@ class DisplayManager:
         # Fade to black
         fade = pygame.Surface(surf.get_size(), pygame.SRCALPHA)
         t = mgr.time()
-        r = mgr.breakdown_start+mgr.BREAKDOWN_IN_DUR-t
+        r = mgr.game_to_breakdown_start+mgr.BREAKDOWN_IN_DUR-t
         r = 1-r/mgr.BREAKDOWN_IN_DUR
         r = max(0, min(1, r))
         fade.fill((0, 0, 0, int(r*255)))
@@ -268,10 +268,10 @@ class DisplayManager:
         
         bar_fill_dur = mgr.BREAKDOWN_BAR_DUR-mgr.BREAKDOWN_BAR_PAUSE-mgr.BREAKDOWN_BAR_END_DUR
         bar_end_dur = mgr.BREAKDOWN_BAR_END_DUR
-        start = mgr.breakdown_start
+        start = mgr.breakdown_bar_start
         
         r_bar = start + bar_fill_dur - t
-        r_end = start + bar_end_dur - t
+        r_end = start + mgr.BREAKDOWN_BAR_DUR - t
         r_bar = 1-r_bar/(bar_fill_dur)
         r_end = 1-r_end/bar_end_dur
         r_bar = max(0, min(1, r_bar))
@@ -293,8 +293,8 @@ class DisplayManager:
         pygame.draw.rect(surf, Player.COLORS[0], [ox, oy, width*r_red, bar_h])
         pygame.draw.rect(surf, Player.COLORS[1], [ox+width-width*r_blue, oy, width*r_blue, bar_h])
         
-        red_snail = self.game.snail[0][0]
-        blue_snail = self.game.snail[0][1]
+        red_snail = self.snail[0][0]
+        blue_snail = self.snail[0][1]
         
         surf.blit(red_snail, [p1[0]-red_snail.get_width()/2, p1[1]-red_snail.get_height()/2])
         surf.blit(blue_snail, [p2[0]-blue_snail.get_width()/2, p2[1]-blue_snail.get_height()/2])
@@ -333,8 +333,6 @@ class DisplayManager:
                 pygame.draw.rect(surf, Player.COLORS[1], [ox+width-w_blue, oy, w_blue, bar_h])
     
     def render_breakdown_bonuses(self, surf):
-        surf.fill(0)
-
         mgr = self.manager
         game = mgr.game
         
@@ -351,8 +349,8 @@ class DisplayManager:
         ox, oy = mx-width/2, my-bar_h/2
         
         # Players
-        red_snail = self.game.snail[0][0]
-        blue_snail = self.game.snail[0][1]
+        red_snail = self.snail[0][0]
+        blue_snail = self.snail[0][1]
         
         surf.blit(red_snail, [p1[0]-red_snail.get_width()/2, p1[1]-red_snail.get_height()/2])
         surf.blit(blue_snail, [p2[0]-blue_snail.get_width()/2, p2[1]-blue_snail.get_height()/2])
@@ -396,10 +394,6 @@ class DisplayManager:
         ys = p1[1]+100
         ye = surf.get_height()*6/7
         h = (ye-ys)/len(bonus_scores)
-        
-        # TODO compute total in manager
-        #bonus_scores[-1][1] = sum([score[1] for score in bonus_scores[:-1]])
-        #bonus_scores[-1][2] = sum([score[2] for score in bonus_scores[:-1]])
         
         font = FontManager.get("arial", 30)
         for i in range(min(step, len(bonus_scores))):

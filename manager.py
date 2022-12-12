@@ -152,7 +152,6 @@ class Manager:
             rem = self.breakdown_bar_start+self.BREAKDOWN_BAR_DUR-self.time()
             if rem <= 0:
                 self.stage = Stage.BREAKDOWN_BONUSES
-                self.finished_breakdown = False
                 self.breakdown_start = self.time()
     
     def on_mouse_down(self, event):
@@ -193,11 +192,16 @@ class Manager:
                     data = data[3*bonus_count:]
                     col_start, col_x, col_y, bonus_scores_count = struct.unpack(">dBBB", data[:11])
                     data = data[11:]
+                    bonus_scores = []
                     for i in range(bonus_scores_count):
                         r, b = struct.unpack(">II", data[8*i:8*i+8])
-                        self.bonus_scores[i][1] = r
-                        self.bonus_scores[i][2] = b
-                
+                        bonus_scores.append([r,b])
+                    
+                    for i in range(2):
+                        self.game.players[i].reinforced_placed = bonus_scores[1][i]
+                        self.game.players[i].dashed_count = bonus_scores[2][i]
+                        self.game.players[i].used_bonus = bonus_scores[3][i]
+
                 else:
                     x1, y1, d1, ds1, x2, y2, d2, ds2 = struct.unpack(">BBBBBBBB", data[7:])
                     trails = None
@@ -221,3 +225,15 @@ class Manager:
         self.stage = Stage.COUNTDOWN
         self.time_origin = time.time()
         self.gui.visible = False
+    
+    def get_bonus_scores(self):
+        p1, p2 = self.game.players
+        scores = [
+            ["Zone couverte", *self.game.get_trail_count()],
+            ["Bave renforcée", p1.reinforced_placed, p2.reinforced_placed],
+            ["Dash", p1.dashed_count, p2.dashed_count],
+            ["Bonus", p1.used_bonus, p2.used_bonus]
+        ]
+
+        scores.append(["Total", sum(map(lambda s: s[1], scores)), sum(map(lambda s: s[2], scores))])
+        return scores

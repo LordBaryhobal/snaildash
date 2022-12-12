@@ -30,10 +30,12 @@ class GUI:
         self._menu = menu
     
     def on_mouse_down(self, event):
+        if not self.visible: return
         if event.button == 1:
             self.get_menu().on_mouse_down(event)
     
     def on_mouse_up(self, event):
+        if not self.visible: return
         if event.button == 1:
             self.get_menu().on_mouse_up(event)
 

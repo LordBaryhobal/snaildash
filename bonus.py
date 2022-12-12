@@ -33,7 +33,7 @@ class Bomb:
         player.use_bonus()
         sx, sy = max(ceil(x-(Bomb.BOMB_SIZE/2)),0), max(ceil(y-(Bomb.BOMB_SIZE/2)), 0)
         ex, ey = min(floor(x + Bomb.BOMB_SIZE/2), game.WIDTH-1)+1, min(floor(y + Bomb.BOMB_SIZE/2), game.HEIGHT-1)+1
-        t = player.i if player.poisoned <= 0 else player.i + 2
+        t = player.i if player.reinforced <= 0 else player.i + 2
         for by in range(sy, ey):
             for bx in range(sx, ex):
                 game.set_trail(bx, by, t)
@@ -42,7 +42,7 @@ class Row:
     TEXTURE = "row.png"
     def apply(x, y, game, player):
         player.use_bonus()
-        t = player.i if player.poisoned <= 0 else player.i + 2
+        t = player.i if player.reinforced <= 0 else player.i + 2
         for rx in range(0,game.WIDTH):
             game.set_trail(rx, y, t)
 
@@ -50,7 +50,7 @@ class Column:
     TEXTURE = "column.png"
     def apply(x, y, game, player):
         player.use_bonus()
-        t = player.i if player.poisoned <= 0 else player.i + 2
+        t = player.i if player.reinforced <= 0 else player.i + 2
         for ry in range(0,game.HEIGHT):
             game.set_trail(x, ry, t)
 
@@ -60,4 +60,4 @@ class MagicalPotion:
     
     def apply(x, y, game, player):
         player.use_bonus()
-        player.poisoned += MagicalPotion.POISON_TIME
+        player.reinforced += MagicalPotion.REINFORCED_TIME

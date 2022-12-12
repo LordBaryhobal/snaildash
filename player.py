@@ -16,7 +16,6 @@ class Player:
         self.y = y
         self.lx, self.ly = x, y
         self.nx, self.ny = x, y
-        self.stun_count = 0
         self.dir = i*2  # 0, 1, 2, 3 -> right, down, left, up
         self.synced = False
         self.dashscore = 0
@@ -32,7 +31,9 @@ class Player:
         self.dashscore = 0
         self.dash = False
         self.reinforced = 0
+        self.reinforced_placed = 0
         self.used_bonus = 0
+        self.dashed_count = 0
 
     def candash(self):
         return self.dashscore >= self.DASH_COST
@@ -42,5 +43,6 @@ class Player:
         
     def usedash(self):
         self.dashscore -= 2
+    
     def use_bonus(self):
         self.used_bonus += 1
