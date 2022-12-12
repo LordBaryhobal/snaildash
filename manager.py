@@ -176,8 +176,8 @@ class Manager:
         elif self.stage == Stage.IN_GAME:
             if data.startswith(b"turnEnd"):
                 if data.startswith(b"turnEndHost"):
-                    x1, y1, d1, s1, ds1, x2, y2, d2, s2, ds2, trails_count, bonus_count = struct.unpack(">BBBBBBBBBBBB", data[11:23])
-                    data = data[23:]
+                    x1, y1, d1, ds1, x2, y2, d2, ds2, trails_count, bonus_count = struct.unpack(">BBBBBBBBBB", data[11:21])
+                    data = data[21:]
                     trails = []
                     for j in range(trails_count):
                         x, y, i = struct.unpack(">BBB", data[3*j:3*j+3])
@@ -185,10 +185,10 @@ class Manager:
 
                     data = data[3*trails_count:]
                     
-                    bonus_list = {}
+                    bonus_dict = {}
                     for j in range(bonus_count):
                         x, y, i = struct.unpack(">BBB", data[3*j:3*j+3])
-                        bonus_list[(x, y)] = i
+                        bonus_dict[(x, y)] = i
                     
                     data = data[3*bonus_count:]
                     col_start, col_x, col_y, bonus_scores_count = struct.unpack(">dBBB", data[:11])
@@ -199,12 +199,12 @@ class Manager:
                         self.bonus_scores[i][2] = b
                 
                 else:
-                    x1, y1, d1, s1, ds1, x2, y2, d2, s2, ds2 = struct.unpack(">BBBBBBBBBB", data[7:])
+                    x1, y1, d1, ds1, x2, y2, d2, ds2 = struct.unpack(">BBBBBBBB", data[7:])
                     trails = None
-                    bonus_list = None
+                    bonus_dict = None
                     col_start, col_x, col_y = 0, 0, 0
                 
-                self.game.sync(x1, y1, d1, s1, ds1, x2, y2, d2, s2, ds2, trails, bonus_list, col_start, col_x, col_y)
+                self.game.sync(x1, y1, d1, ds1, x2, y2, d2, ds2, trails, bonus_dict, col_start, col_x, col_y)
                 if self.is_host():
                     self.game.end_turn()
                 

@@ -32,6 +32,7 @@ class Player:
         self.dashscore = 0
         self.dash = False
         self.reinforced = 0
+        self.used_bonus = 0
 
     def candash(self):
         return self.dashscore >= self.DASH_COST
@@ -41,3 +42,5 @@ class Player:
         
     def usedash(self):
         self.dashscore -= 2
+    def use_bonus(self):
+        self.used_bonus += 1
