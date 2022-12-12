@@ -110,6 +110,7 @@ class Manager:
                 
                 elif name == "main.tutorial":
                     self.tutorial.start_time = time.time()
+                    self.tutorial.slide = 0
                     self.gui.set_menu("tutorial")
                     self.stage = Stage.TUTORIAL
                 

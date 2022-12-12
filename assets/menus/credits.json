@@ -1,8 +1,102 @@
 [
     {
-        "type": "button",
+        "type": "text",
+        "x": 0.5,
+        "y": 0.1,
+        "size": 24,
+        "bold": true,
+        "txt": "Concept"
+    },
+    {
+        "type": "text",
+        "x": 0.5,
+        "y": 0.15,
+        "size": 20,
+        "txt": "Mathéo Beney et Louis Heredero"
+    },
+
+    {
+        "type": "text",
+        "x": 0.5,
+        "y": 0.25,
+        "size": 24,
+        "bold": true,
+        "txt": "Programmation"
+    },
+    {
+        "type": "text",
+        "x": 0.5,
+        "y": 0.30,
+        "size": 20,
+        "txt": "Louis Heredero et Mathéo Beney"
+    },
+
+    {
+        "type": "text",
+        "x": 0.5,
+        "y": 0.40,
+        "size": 24,
+        "bold": true,
+        "txt": "Textures"
+    },
+    {
+        "type": "text",
+        "x": 0.5,
+        "y": 0.45,
+        "size": 20,
+        "txt": "Louis Heredero, Toby Lane et Mathéo Beney"
+    },
+
+    {
+        "type": "text",
+        "x": 0.5,
+        "y": 0.55,
+        "size": 24,
+        "bold": true,
+        "txt": "Musique"
+    },
+    {
+        "type": "text",
+        "x": 0.5,
+        "y": 0.60,
+        "size": 20,
+        "txt": "Toby Lane et Louis Heredero"
+    },
+
+    {
+        "type": "text",
+        "x": 0.5,
+        "y": 0.70,
+        "size": 24,
+        "bold": true,
+        "txt": "Playtest"
+    },
+    {
+        "type": "text",
         "x": 0.5,
         "y": 0.75,
+        "size": 20,
+        "txt": "Mathéo. B, Louis H., Sven H., Marie R."
+    },
+    {
+        "type": "text",
+        "x": 0.5,
+        "y": 0.78,
+        "size": 20,
+        "txt": "Noah C., Mateo F., Merlin R."
+    },
+    {
+        "type": "text",
+        "x": 0.5,
+        "y": 0.81,
+        "size": 20,
+        "txt": "Natasha L., Jan S., Blaise R."
+    },
+
+    {
+        "type": "button",
+        "x": 0.5,
+        "y": 0.9,
         "width": 0.25,
         "txt": "Menu principal",
         "name": "credits.main"

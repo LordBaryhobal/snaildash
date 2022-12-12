@@ -131,12 +131,12 @@ class Button:
 class Text:
     COLOR = (255, 255, 255)
     
-    def __init__(self, menu, x, y, txt="", font_family="arial", size=30, align="center", color=COLOR, **kwargs):
+    def __init__(self, menu, x, y, txt="", font_family="arial", size=30, align="center", bold=False, color=COLOR, **kwargs):
         self.menu = menu
         self.x = x
         self.y = y
         self.txt = txt
-        self.font = FontManager.get(font_family, size)
+        self.font = FontManager.get(font_family, size, bold=bold)
         self.align = align
         self.color = color
     
