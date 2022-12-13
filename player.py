@@ -1,3 +1,6 @@
+#Snaildash is a small game created in the scope of a school project
+#Copyright (C) 2022  Louis HEREDERO & Mathéo BENEY
+
 class Player:
     COLORS = [(255,100,0), (0,100,255)]
     TRAIL_COLORS = [(255,150,100), (100,150,255)]

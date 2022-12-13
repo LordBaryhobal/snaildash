@@ -1,10 +1,15 @@
-from player import Player
+#Snaildash is a small game created in the scope of a school project
+#Copyright (C) 2022  Louis HEREDERO & Mathéo BENEY
+
+from math import ceil, floor
+from random import randint
+import struct
+
 import numpy as np
 import pygame
-from random import randint
+
 from bonus import Bonus, Bomb, Row, Column, MagicalPotion
-from math import ceil, floor
-import struct
+from player import Player
 
 class Game:
     WIDTH = 15  # Width of the grid

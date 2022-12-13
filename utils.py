@@ -1,3 +1,6 @@
+#Snaildash is a small game created in the scope of a school project
+#Copyright (C) 2022  Louis HEREDERO & Mathéo BENEY
+
 import string
 
 abc = string.digits + string.ascii_uppercase

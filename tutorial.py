@@ -1,3 +1,6 @@
+#Snaildash is a small game created in the scope of a school project
+#Copyright (C) 2022  Louis HEREDERO & Mathéo BENEY
+
 import json
 import os
 import time
@@ -5,7 +8,6 @@ import time
 import pygame
 
 from font_manager import FontManager
-from stage import Stage
 
 class Tutorial:
     FPS = 2

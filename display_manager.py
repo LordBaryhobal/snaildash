@@ -1,6 +1,9 @@
+#Snaildash is a small game created in the scope of a school project
+#Copyright (C) 2022  Louis HEREDERO & Mathéo BENEY
+
 from math import radians, sin, cos, pi
-import time
 import random
+import time
 
 import pygame
 
