@@ -6,9 +6,23 @@ import os
 import pygame
 
 class FontManager:
+    """Manages fonts using a cache"""
+
     cache = {}
 
     def get(font, size, bold=False, italic=False):
+        """Loads a font or get it from the cache
+
+        Args:
+            font (str): font name
+            size (int): font size
+            bold (bool, optional): True for bold text. Defaults to False.
+            italic (bool, optional): True for italic text. Defaults to False.
+
+        Returns:
+            pygame.font.Font: the corresponding font
+        """
+        
         id_ = (font, size, bold, italic)
         if not id_ in FontManager.cache:
             if font.startswith("file:"):

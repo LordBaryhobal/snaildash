@@ -12,6 +12,8 @@ from bonus import Bonus, Bomb, Row, Column, MagicalPotion
 from player import Player
 
 class Game:
+    """Main class managing the game's state"""
+
     WIDTH = 15  # Width of the grid
     HEIGHT = 15  # Height of the grid
     TIMER = 0.25  # Duration in seconds of a turn
@@ -20,6 +22,12 @@ class Game:
     COLLIDE_RADIUS = 4  # Radius in number of tiles of the collision shockwave
     
     def __init__(self, manager):
+        """Initializes a Game instance
+
+        Args:
+            manager (Manager): manager instance
+        """
+        
         self.manager = manager
         self.players = [
             Player(self, 0, 0, 0),
@@ -29,6 +37,8 @@ class Game:
         self.reset()
     
     def reset(self):
+        """Resets the state and different values before a new game"""
+
         self.trails = np.full([self.HEIGHT, self.WIDTH], -1, dtype="int8")
         self.players[0].reset(0, 0)
         self.players[1].reset(self.WIDTH-1, self.HEIGHT-1)
@@ -44,19 +54,33 @@ class Game:
         self.bonus_dict = {}
     
     def is_host(self):
+        """Returns whether this instance is the host or not
+
+        Returns:
+            bool: True if host, False if guest
+        """
         return self.manager.is_host()
     
     def init_host(self):
+        """Initializes the game as the host"""
         self.player = self.players[0]
 
     def init_guest(self):
+        """Initializes the game as the guest"""
         self.player = self.players[1]
     
     def get_trail_count(self):
+        """Returns the number of cells covered in drool for each player
+
+        Returns:
+            tuple[int, int]: counts for (red, blue)
+        """
         return (np.count_nonzero(self.trails == 0) + np.count_nonzero(self.trails == 2), \
         np.count_nonzero(self.trails == 1) + np.count_nonzero(self.trails == 3))
     
     def start_turn(self):
+        """Starts a new turn"""
+
         self.turn_start = self.manager.time()
         self.player.synced = False
         self.trail_changes = []
@@ -68,6 +92,12 @@ class Game:
             player.reinforced = max(player.reinforced-1, 0)
     
     def handle_key(self, event):
+        """Handles a pygame.KEYDOWN event
+
+        Args:
+            event (pygame.EVENT): the pygame event
+        """
+
         ndir = self.player.dir%4
         if event.key == pygame.K_w or event.key == pygame.K_UP:
             ndir = 3
@@ -88,6 +118,8 @@ class Game:
         self.player.dir = ndir
     
     def end_turn(self):
+        """Finalizes the current turn"""
+
         if self.manager.is_host():
             for player in self.players:
                 player.synced = False
@@ -136,6 +168,8 @@ class Game:
             self.send_sync()
             
     def check_collsion(self):
+        """Checks the movements of each player to process collisions"""
+
         p1, p2 = self.players
         if p1.dir <=3:
             if p2.dir <=3:
@@ -190,6 +224,12 @@ class Game:
                         break
         
     def collide(self, center):
+        """Process a collision
+
+        Args:
+            center (tuple[int, int]): position in tiles of the collision's center
+        """
+
         for p in self.players:
             if not (p.dir == 0 and p.x == self.WIDTH-1) and not (p.dir == 1 and p.y == self.HEIGHT-1) and not (p.dir == 2 and p.x == 0) and not (p.dir == 3 and p.y== 0):
                 p.dir = (p.dir%4+2)%4
@@ -209,6 +249,8 @@ class Game:
                 self.set_trail(x,y,255)
 
     def loop(self):
+        """Main game loop (executed on every frame)"""
+
         self.remaining = self.turn_start+self.TIMER - self.manager.time()
         
         if self.remaining <= 0:
@@ -218,6 +260,24 @@ class Game:
                     self.end_turn()
     
     def sync(self, x1, y1, d1, ds1, x2, y2, d2, ds2, trails=None, bonus_dict=None, col_start=0, col_x=0, col_y=0):
+        """Process synchronization info received from the other device
+
+        Args:
+            x1 (int): x position of player 1
+            y1 (int): y position of player 1
+            d1 (int): direction of player 1
+            ds1 (int): dashscore of player 1
+            x2 (int): x position of player 2
+            y2 (int): y position of player 2
+            d2 (int): direction of player 2
+            ds2 (int): dashscore of player 2
+            trails (list[tuple[int, int, int]], optional): list of trail changes. Defaults to None.
+            bonus_dict (dict[tuple[int, int], int], optional): dictionary of placed bonuses. Defaults to None.
+            col_start (float, optional): start time of collision. Defaults to 0.
+            col_x (int, optional): x position of the collision. Defaults to 0.
+            col_y (int, optional): y position of the collision. Defaults to 0.
+        """
+        
         if self.player.i == 1 or not self.manager.is_host():
             self.players[0].lx = self.players[0].x
             self.players[0].ly = self.players[0].y
@@ -244,6 +304,8 @@ class Game:
             self.collide_pos = [col_x, col_y]
                 
     def send_sync(self):
+        """Sends synchronization info to the other device"""
+        
         x1 = self.players[0].nx
         y1 = self.players[0].ny
         d1 = self.players[0].dir
@@ -273,6 +335,14 @@ class Game:
         self.manager.socket_handler.send(msg)
     
     def set_trail(self, x, y, i):
+        """Sets the drool at a given position
+
+        Args:
+            x (int): x coordinate
+            y (int): y coordinate
+            i (int): drool id (0:red, 1:blue, 2:reinf. red, 3:reinf. blue, -1/255:none)
+        """
+        
         if i != -1 and i != 255:
             cur = self.trails[y,x]
             if i == cur: return

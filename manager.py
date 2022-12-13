@@ -15,6 +15,8 @@ from stage import Stage
 from tutorial import Tutorial
 
 class Manager:
+    """Main class managing the whole game process, menus and communication"""
+    
     WIDTH, HEIGHT = 800, 800 #1920, 1080
     FPS = 30
     
@@ -26,6 +28,8 @@ class Manager:
     BREAKDOWN_INTERVAL = 1  # Interval in seconds between each bonus score reveal
 
     def __init__(self):
+        """Initializes a Manager instance"""
+        
         pygame.init()
         pygame.display.set_caption("Snaildash")
         self.clock = pygame.time.Clock()
@@ -40,9 +44,16 @@ class Manager:
         self.init()
     
     def is_host(self):
+        """Returns whether this instance is the host or not
+
+        Returns:
+            bool: True if host, False if guest
+        """
         return self._is_host
     
     def init(self):
+        """Initializes the communication and values dependent on this device's status"""
+        
         print(f"The code for this machine is: {self.socket_handler.get_code()}")
         code = input("Code of the other machine (leave empty to host): ")
         if len(code) == 0:
@@ -55,21 +66,33 @@ class Manager:
         self.win = pygame.display.set_mode([self.WIDTH, self.HEIGHT], pygame.RESIZABLE)#, pygame.FULLSCREEN)
     
     def host(self):
+        """Initializes this instance as the host"""
+        
         self._is_host = True
         self.game.init_host()
         self.socket_handler.host()
     
     def join(self, code):
+        """Initializes this instance as the guest"""
+        
         self.game.init_guest()
         self.socket_handler.join(code)
     
     def quit(self, send=False):
+        """Exits the game and closes the main window
+
+        Args:
+            send (bool, optional): Whether the command should be sent to the other device. Defaults to False.
+        """
+        
         if send:
             self.socket_handler.send(b"quit")
         self.socket_handler.quit()
         self.stage = Stage.STOP
     
     def mainloop(self):
+        """Main loop, calls logic and rendering related methods"""
+        
         while self.stage != Stage.STOP:
             pygame.display.set_caption(f"Snaildash - {self.clock.get_fps():.2f}fps")
             events = pygame.event.get()
@@ -79,9 +102,16 @@ class Manager:
             self.clock.tick(self.FPS)
     
     def time(self):
+        """Returns the relative time since game start"""
         return time.time()-self.time_origin
     
     def handle_events(self, events):
+        """Handles pygame events
+
+        Args:
+            events (list[pygame.Event]): list of pygame events
+        """
+        
         for event in events:
             if event.type == pygame.QUIT:
                 self.quit(True)
@@ -159,12 +189,28 @@ class Manager:
                 self.breakdown_start = self.time()
     
     def on_mouse_down(self, event):
+        """Handles a pygame.MOUSEBUTTONDOWN event
+
+        Args:
+            event (pygame.Event): pygame event
+        """
         self.gui.on_mouse_down(event)
     
     def on_mouse_up(self, event):
+        """Handles a pygame.MOUSEBUTTONUP event
+
+        Args:
+            event (pygame.Event): pygame event
+        """
         self.gui.on_mouse_up(event)
     
     def on_receive(self, data):
+        """Processes data received from the other device
+
+        Args:
+            data (bytes): received data
+        """
+        
         if data == b"quit":
             self.quit()
             return
@@ -220,6 +266,12 @@ class Manager:
                     pygame.event.post(pygame.event.Event(pygame.USEREVENT))
     
     def play(self, send=False):
+        """Starts the game
+
+        Args:
+            send (bool, optional): Whether the command should be sent to the other device. Defaults to False.
+        """
+        
         if send:
             self.socket_handler.send(b"start")
         
@@ -231,6 +283,12 @@ class Manager:
         self.gui.visible = False
     
     def get_bonus_scores(self):
+        """Returns a list of bonus scores for each player
+
+        Returns:
+            list[list[str, int, int]]: list of bonus scores
+        """
+        
         p1, p2 = self.game.players
         scores = [
             ["Zone couverte", *self.game.get_trail_count()],

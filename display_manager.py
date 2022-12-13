@@ -13,17 +13,27 @@ from stage import Stage
 from texture_manager import TextureManager
 
 class DisplayManager:
+    """Manages the rendering of the game and menus"""
+
     CD_COLOR = (133, 255, 255)
     PCT_COLOR = (255, 255, 255)
     END_STMT_COLOR = (255, 255, 255)
     BONUS_SCORE_COLOR = (255, 255, 255)
     
     def __init__(self, manager):
+        """Initializes a DisplayManager instance
+
+        Args:
+            manager (Manager): Manager instance
+        """
+        
         self.manager = manager
         self.ts = 1
         self.gen_stars()
     
     def gen_stars(self):
+        """Generates the stars shown in the main menu and in the game's background"""
+
         self.main_menu_stars = [
             [random.randint(0, self.manager.WIDTH), random.randint(-40, 40), random.random()]
             for i in range(20)
@@ -39,6 +49,8 @@ class DisplayManager:
             self.stars.append([x,y,f])
     
     def resize(self):
+        """Reloads and resizes textures according to the new tile size"""
+
         self.drool_textures = []
         for i in range(16):
             normal = TextureManager.get(("drool", f"{i}.png"), self.ts*2)
@@ -69,6 +81,12 @@ class DisplayManager:
             self.dashscore_textures.append(texture)
     
     def render(self, surf):
+        """Main render method. Calls dedicated methods for the different parts
+
+        Args:
+            surf (pygame.Surface): window surface
+        """
+
         mgr = self.manager
         stage = mgr.stage
         
@@ -123,6 +141,12 @@ class DisplayManager:
             mgr.tutorial.render(surf)
     
     def render_main_menu(self, surf):
+        """Renders the main menu
+
+        Args:
+            surf (pygame.Surface): window surface
+        """
+
         oy = 0.25*surf.get_height()
         for i, [x, y, v] in enumerate(self.main_menu_stars):
             pygame.draw.ellipse(surf, (150,150,150), [
@@ -148,6 +172,13 @@ class DisplayManager:
         surf.blit(snail, [x-w, oy+dy-snail.get_height()/2])
 
     def render_game(self, surf, render_players=True):
+        """Renders the game
+
+        Args:
+            surf (pygame.Surface): window surface
+            render_players (bool, optional): Whether the player should be rendered. Defaults to True.
+        """
+        
         cur_time = self.manager.time()
         game = self.manager.game
         
@@ -225,6 +256,12 @@ class DisplayManager:
         surf.blit(ds_texture, [ox-ds_texture.get_width()-self.ts, surf.get_height()/2-ds_texture.get_height()/2])
     
     def render_breakdown_transition(self, surf):
+        """Renders the transition between the game and breakdown phase
+
+        Args:
+            surf (pygame.Surface): window surface
+        """
+        
         self.render_game(surf, False)
         mgr = self.manager
         game = mgr.game
@@ -265,6 +302,12 @@ class DisplayManager:
         surf.blit(blue, [p2P[0]-blue.get_width()/2, p2P[1]-blue.get_height()/2])
     
     def render_breakdown_bar(self, surf):
+        """Renders the breakdown bar filling
+
+        Args:
+            surf (pygame.Surface): window surface
+        """
+        
         mgr = self.manager
         game = mgr.game
         t = mgr.time()
@@ -336,6 +379,12 @@ class DisplayManager:
                 pygame.draw.rect(surf, Player.COLORS[1], [ox+width-w_blue, oy, w_blue, bar_h])
     
     def render_breakdown_bonuses(self, surf):
+        """Renders the breakdown of bonus scores
+
+        Args:
+            surf (pygame.Surface): window surface
+        """
+        
         mgr = self.manager
         game = mgr.game
         

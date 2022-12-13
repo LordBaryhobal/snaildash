@@ -10,6 +10,8 @@ import pygame
 from font_manager import FontManager
 
 class Tutorial:
+    """Class managing the tutorial section"""
+    
     FPS = 2
     TPS = 1/FPS
     
@@ -22,6 +24,8 @@ class Tutorial:
         self.start_time = 0
 
     def load(self):
+        """Loads the tutorial slides"""
+        
         with open(os.path.join("assets", "tutorials.json"), "r", encoding="utf-8") as f:
             self.slides = json.load(f)
             for slide in self.slides:
@@ -39,6 +43,12 @@ class Tutorial:
                         self.anims[section["anim"]] = imgs
     
     def render(self, surf):
+        """Renders the current slide
+
+        Args:
+            surf (pygame.Surface): window surface
+        """
+        
         W, H = surf.get_size()
         W2, H2 = W/2, H/2
         W6, H6 = W/6, H/6
@@ -99,9 +109,13 @@ class Tutorial:
                     y += line.get_height()+10
     
     def prev_slide(self):
+        """Goes to previous slide"""
+        
         self.slide = max(0, self.slide-1)
         self.start_time = time.time()
     
     def next_slide(self):
+        """Goes to next slide"""
+        
         self.slide = min(len(self.slides)-1, self.slide+1)
         self.start_time = time.time()

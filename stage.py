@@ -2,6 +2,8 @@
 #Copyright (C) 2022  Louis HEREDERO & Mathéo BENEY
 
 class Stage:
+    """Enum representing the game process state"""
+    
     STOP = -1
     MAIN_MENU = 0
     WAITING_OPPONENT = 1
