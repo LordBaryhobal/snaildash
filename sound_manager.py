@@ -6,7 +6,7 @@ import os
 import pygame
 
 class SoundManager:
-    """Manages fonts using a cache"""
+    """Manages sounds using a cache"""
     
     cache = {}
     
