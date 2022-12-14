@@ -11,4 +11,4 @@ for i in range(16):
 		r = random.randint(6,16)
 		pygame.draw.circle(S, (160,160,160), [x,y], r)
 	
-	pygame.image.save(S, f"drool_poison/{i}.png")
+	pygame.image.save(S, f"drool_reinforced/{i}.png")

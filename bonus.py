@@ -88,7 +88,7 @@ class Column:
 class MagicalPotion:
     """Bonus which places makes the player's drool stronger for the next REINFORCED_TIME turns"""
 
-    TEXTURE = "poison.png"
+    TEXTURE = "potion.png"
     REINFORCED_TIME = 4  # Number of tiles of reinforced drool for each potion
     
     def apply(x, y, game, player):

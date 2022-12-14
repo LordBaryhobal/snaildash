@@ -89,7 +89,7 @@
 	                "Rend la bave produite plus résistante pour les 3 prochains déplacements.",
                     "L'adversaire doit passer 2 fois sur la bave résistante pour la couvrir."
                 ],
-                "anim": "poison",
+                "anim": "potion",
                 "align_img": "left"
             },
             {
