@@ -145,6 +145,8 @@ class Manager:
                     self.tutorial.start_time = time.time()
                     self.tutorial.slide = 0
                     self.gui.set_menu("tutorial")
+                    self.gui.get_menu().components[1].visible = False
+                    self.gui.get_menu().components[2].visible = True
                     self.stage = Stage.TUTORIAL
                 
                 elif name == "main.credits":
