@@ -1,6 +1,8 @@
 #Snaildash is a small game created in the scope of a school project
 #Copyright (C) 2022  Louis HEREDERO & Mathéo BENEY
 
+import json
+import os
 import struct
 import time
 
@@ -40,6 +42,7 @@ class Manager:
         self.tutorial = Tutorial(self)
         self.display_manager = DisplayManager(self)
         self._is_host = False
+        self.load_config()
         
         self.init()
     
@@ -301,3 +304,13 @@ class Manager:
 
         scores.append(["Total", sum(map(lambda s: s[1], scores)), sum(map(lambda s: s[2], scores))])
         return scores
+    
+    def load_config(self):
+        if not os.path.exists("config.json"):
+            print("#"*80)
+            print("You are missing config.json")
+            print("please contact the developer if you have no idea what this is about!")
+            print("#"*80)
+            exit()
+        with open("config.json", encoding="utf-8") as conffile:
+            self.config = json.load(conffile)
