@@ -27,12 +27,16 @@ class SocketHandler:
         self.connect_s = None
     
     def reset(self):
+        """Resets messages state"""
+        
         self._msgs = {}
         self._last_recv = -1
         self._latest = -1
         self._msg_id = 0
     
     def connect(self):
+        """Connects to the match-making server and waits for opponent"""
+        
         self.reset()
         self.running = True
         
@@ -53,6 +57,8 @@ class SocketHandler:
         
     
     def wait_for_opponent(self):
+        """Waits for opponent asynchronously"""
+        
         connected = False
         while self.running:
             try:
@@ -86,6 +92,8 @@ class SocketHandler:
         self.connect_s = None
     
     def finalize_connection(self):
+        """Establishes the connection with the opponent"""
+        
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         #self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
@@ -105,12 +113,23 @@ class SocketHandler:
         self.manager.on_connected()
 
     def sock_send(self, msg):
-        if not self.running: return
+        """Sends a message through the socket. If the socket is closed,
+        the message will silently be ignored
+
+        Args:
+            msg (str or bytes): the message to send
+        """
+        
+        if not self.running or self.sock is None: return
         if isinstance(msg, str):
             msg = msg.encode("utf-8")
         self.sock.sendall(msg)
 
     def listen_loop(self):
+        """Listens for incoming messages asynchronously and responds accordingly.
+        This method implements TCP features over UDP
+        """
+        
         while self.running:
             try:
                 data = self.sock.recv(2048)
@@ -152,6 +171,8 @@ class SocketHandler:
             
 
     def send_loop(self):
+        """Sends un-acknowledged messages asynchronously every SEND_INTERVAL seconds"""
+        
         while self.running:
             msgs = self._msgs.copy()
             for id_, [msg, ack] in msgs.items():
@@ -161,7 +182,7 @@ class SocketHandler:
             time.sleep(self.SEND_INTERVAL)
 
     def send(self, msg):
-        """Sends data to the other device
+        """Adds a msg to the send queue
 
         Args:
             msg (bytes): data to send

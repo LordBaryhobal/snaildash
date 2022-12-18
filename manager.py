@@ -79,6 +79,8 @@ class Manager:
         self.stage = Stage.STOP
     
     def quit_game(self):
+        """Quits a running game and returns to main menu"""
+        
         self.socket_handler.quit()
         self.gui.set_menu("main")
         self.gui.visible = True
@@ -212,6 +214,8 @@ class Manager:
         self.gui.on_mouse_up(event)
     
     def on_connected(self):
+        """Starts game when an opponent is found and the connection is established"""
+        
         if self.stage == Stage.WAITING_OPPONENT:
             self.play()
     
