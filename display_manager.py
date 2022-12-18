@@ -28,6 +28,7 @@ class DisplayManager:
         """
         
         self.manager = manager
+        self.player_i = self.manager.game.player.i
         self.ts = 1
         self.gen_stars()
     
@@ -77,6 +78,7 @@ class DisplayManager:
         self.dashscore_textures = []
         for i in range(5):
             texture = TextureManager.get(("dash_score_bar", f"{i}.png"), self.ts*2, self.ts*8)
+            texture = texture.copy()
             texture.fill(Player.COLORS[self.manager.game.player.i]+(255,), None, pygame.BLEND_RGBA_MULT)
             self.dashscore_textures.append(texture)
     
@@ -97,6 +99,10 @@ class DisplayManager:
         ts = min(tw, th)
         if self.ts != ts:
             self.ts = ts
+            self.resize()
+        
+        elif self.player_i != self.manager.game.player.i:
+            self.player_i = self.manager.game.player.i
             self.resize()
         
         surf.fill(0)

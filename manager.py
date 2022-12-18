@@ -44,7 +44,9 @@ class Manager:
         self._is_host = False
         self.load_config()
         
-        self.init()
+        self.startup_time = time.time()
+        self.last_ping = 0
+        self.win = pygame.display.set_mode([self.WIDTH, self.HEIGHT], pygame.RESIZABLE)#, pygame.FULLSCREEN)
     
     def is_host(self):
         """Returns whether this instance is the host or not
@@ -54,32 +56,15 @@ class Manager:
         """
         return self._is_host
     
-    def init(self):
-        """Initializes the communication and values dependent on this device's status"""
-        
-        print(f"The code for this machine is: {self.socket_handler.get_code()}")
-        code = input("Code of the other machine (leave empty to host): ")
-        if len(code) == 0:
-            self.host()
-        
-        else:
-            self.join(code)
-        
-        self.startup_time = time.time()
-        self.win = pygame.display.set_mode([self.WIDTH, self.HEIGHT], pygame.RESIZABLE)#, pygame.FULLSCREEN)
-    
-    def host(self):
+    def init_host(self):
         """Initializes this instance as the host"""
-        
         self._is_host = True
         self.game.init_host()
-        self.socket_handler.host()
     
-    def join(self, code):
+    def init_guest(self):
         """Initializes this instance as the guest"""
-        
+        self._is_host = False
         self.game.init_guest()
-        self.socket_handler.join(code)
     
     def quit(self, send=False):
         """Exits the game and closes the main window
@@ -92,6 +77,12 @@ class Manager:
             self.socket_handler.send(b"quit")
         self.socket_handler.quit()
         self.stage = Stage.STOP
+    
+    def quit_game(self):
+        self.socket_handler.quit()
+        self.gui.set_menu("main")
+        self.gui.visible = True
+        self.stage = Stage.MAIN_MENU
     
     def mainloop(self):
         """Main loop, calls logic and rendering related methods"""
@@ -140,7 +131,7 @@ class Manager:
                 
                 name = event.name
                 if name == "main.play":
-                    self.socket_handler.send(b"ready")
+                    self.socket_handler.connect()
                     self.gui.set_menu("waiting")
                     self.stage = Stage.WAITING_OPPONENT
                 
@@ -159,6 +150,11 @@ class Manager:
                 elif name in ["waiting.main", "credits.main", "breakdown.main", "tutorial.main"]:
                     self.gui.set_menu("main")
                     self.stage = Stage.MAIN_MENU
+                    if name == "waiting.main":
+                        self.socket_handler.running = False
+                    
+                    elif name == "breakdown.main":
+                        self.socket_handler.quit()
                 
                 elif name == "tutorial.prev":
                     self.tutorial.prev_slide()
@@ -167,7 +163,13 @@ class Manager:
                     self.tutorial.next_slide()
         
         if self.stage == Stage.COUNTDOWN:
-            rem = self.countdown_start+self.COUNTDOWN_DUR-time.time()
+            cur_time = time.time()
+            rem = self.countdown_start+self.COUNTDOWN_DUR-cur_time
+            
+            if cur_time-self.last_ping > 0.5:
+                self.socket_handler.send(b"ping")  # keep tunnel open
+                self.last_ping = cur_time
+                
             if rem <= 0:
                 self.stage = Stage.IN_GAME
                 #pygame.mixer.music.play()
@@ -209,6 +211,10 @@ class Manager:
         """
         self.gui.on_mouse_up(event)
     
+    def on_connected(self):
+        if self.stage == Stage.WAITING_OPPONENT:
+            self.play()
+    
     def on_receive(self, data):
         """Processes data received from the other device
 
@@ -217,17 +223,10 @@ class Manager:
         """
         
         if data == b"quit":
-            self.quit()
+            self.quit_game()
             return
 
-        if self.stage == Stage.WAITING_OPPONENT:
-            if data == b"ready":
-                self.play(True)
-            
-            elif data == b"start":
-                self.play()
-        
-        elif self.stage == Stage.IN_GAME:
+        if self.stage == Stage.IN_GAME:
             if data.startswith(b"turnEnd"):
                 if data.startswith(b"turnEndHost"):
                     x1, y1, d1, ds1, x2, y2, d2, ds2, trails_count, bonus_count = struct.unpack(">BBBBBBBBBB", data[11:21])

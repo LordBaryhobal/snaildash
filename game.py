@@ -33,6 +33,7 @@ class Game:
             Player(self, 0, 0, 0),
             Player(self, 1, self.WIDTH-1, self.HEIGHT-1)
         ]
+        self.player = self.players[0]
         self.bonus_list = [Bomb, Row, Column, MagicalPotion]
         self.reset()
     
