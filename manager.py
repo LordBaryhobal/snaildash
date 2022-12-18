@@ -3,6 +3,7 @@
 
 import json
 import os
+import requests
 import struct
 import time
 
@@ -125,6 +126,8 @@ class Manager:
                 
                 if self.stage == Stage.IN_GAME:
                     self.game.handle_key(event)
+                else:
+                    self.gui.on_key_down(event)
             
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 self.on_mouse_down(event)
@@ -140,6 +143,13 @@ class Manager:
                 
                 name = event.name
                 if name == "main.play":
+                    self.gui.set_menu("nameinput")
+                    self.stage = Stage.NAMEINPUT
+                
+                elif name == "nameinput.connect":
+                    self.username = self.gui.get_menu().components[1].txt
+                    if self.username == "":
+                        continue
                     self.socket_handler.send(b"ready")
                     self.gui.set_menu("waiting")
                     self.stage = Stage.WAITING_OPPONENT
@@ -178,6 +188,7 @@ class Manager:
             self.game.loop()
             rem = self.game.start_time+self.game.DURATION-self.time()
             if rem <= 0:
+                self.send_score()
                 self.stage = Stage.GAME_TO_BREAKDOWN
                 self.game_to_breakdown_start = self.time()
         
@@ -314,3 +325,10 @@ class Manager:
             exit()
         with open("config.json", encoding="utf-8") as conffile:
             self.config = json.load(conffile)
+    
+    def send_score(self):
+        data = {
+            "name": self.username,
+            "score": self.get_bonus_scores()[-1][self.game.player.i + 1]
+        }
+        requests.post(self.config["score_url"], data)

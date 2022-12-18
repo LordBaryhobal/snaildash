@@ -1,0 +1,27 @@
+[
+
+    {
+        "type": "text",
+        "x": 0.5,
+        "y": 0.4,
+        "width": 0.3,
+        "txt": "Type username:",
+        "size": 40
+    },
+    {
+        "type": "input",
+        "x": 0.5,
+        "y": 0.5,
+        "width": 0.25,
+        "height":0.1,
+        "maxlen":10
+    },
+    {
+        "type": "button",
+        "x": 0.5,
+        "y": 0.75,
+        "width": 0.25,
+        "txt": "Connect",
+        "name": "nameinput.connect"
+    }
+]

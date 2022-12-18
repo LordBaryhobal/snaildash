@@ -101,7 +101,7 @@ class DisplayManager:
         
         surf.fill(0)
         
-        if stage in [Stage.MAIN_MENU, Stage.WAITING_OPPONENT, Stage.CREDITS, Stage.TUTORIAL, Stage.BREAKDOWN_BONUSES]:
+        if stage in [Stage.MAIN_MENU, Stage.WAITING_OPPONENT, Stage.CREDITS, Stage.TUTORIAL, Stage.BREAKDOWN_BONUSES, Stage.NAMEINPUT]:
             mgr.gui.render(surf)
             if stage == Stage.MAIN_MENU:
                 self.render_main_menu(surf)

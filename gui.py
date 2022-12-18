@@ -11,7 +11,7 @@ from font_manager import FontManager
 class GUI:
     """Class managing menus"""
     
-    MENUS = ["main", "waiting", "credits", "breakdown", "tutorial"]
+    MENUS = ["main", "waiting", "credits", "breakdown", "tutorial", "nameinput"]
     
     def __init__(self):
         """Initializes a GUI instance"""
@@ -25,7 +25,7 @@ class GUI:
         """Loads all menu files"""
         
         for m in self.MENUS:
-            with open(os.path.join("assets", "menus", f"{m}.json"), "r") as f:
+            with open(os.path.join("assets", "menus", f"{m}.json"), "r", encoding="utf-8") as f:
                 self.menus[m] = Menu(json.load(f))
 
     def render(self, surf):
@@ -73,6 +73,10 @@ class GUI:
         if not self.visible: return
         if event.button == 1:
             self.get_menu().on_mouse_up(event)
+            
+    def on_key_down(self, event):
+        if not self.visible: return
+        self.get_menu().on_key_down(event)
 
 class Menu:
     """Class representing a menu, composed of texts and buttons"""
@@ -93,6 +97,8 @@ class Menu:
                 cls = Button
             elif type_ == "text":
                 cls = Text
+            elif type_ == "input":
+                cls = Input
             else:
                 continue
             
@@ -140,6 +146,12 @@ class Menu:
                     pygame.event.post(pygame.event.Event(pygame.USEREVENT+1, name=c.name))
                 
                 c.pressed = False
+    def on_key_down(self, event):
+        for c in self.components:
+            if not isinstance(c, Input): continue
+            if not c.visible: continue
+            c.handle_event(event)
+            
 
 class Button:
     """Class representing a clickable button"""
@@ -259,3 +271,78 @@ class Text:
             x -= txt.get_width()/2
         
         surf.blit(txt, [x, y])
+
+
+class Input:
+    """Class representing an input element"""
+    
+    COLOR = (255, 255, 255)
+    VALID = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-"
+    
+    def __init__(self, menu, x, y, txt="", font_family="arial", size=30, align="center", color=COLOR, maxlen=10, width=0.3, height=0.1, **kwargs):
+        """Initializes an Input instance
+
+        Args:
+            menu (Menu): parent menu
+            x (float): x position factor
+            y (float): y position facor
+            txt (str, optional): text content. Defaults to "".
+            font_family (str, optional): font family. Defaults to "arial".
+            size (int, optional): font size. Defaults to 30.
+            align (str, optional): text alignment. One of: "left", "center" or "right". Defaults to "center".
+            bold (bool, optional): whether the text is bold. Defaults to False.
+            color (tuple[int, int, int], optional): text color. Defaults to COLOR.
+        """
+        
+        self.menu = menu
+        self.x = x
+        self.y = y
+        self.txt = txt
+        self.font = FontManager.get(font_family, size)
+        self.align = align
+        self.color = color
+        self.maxlen = maxlen
+        self.width = width
+        self.height = height
+        
+        self.visible = True
+    
+    def render(self, surf):
+        """Renders this text
+
+        Args:
+            surf (pygame.Surface): window surface
+        """
+        
+        txt = self.font.render(self.txt, True, self.color)
+        x = self.menu.width*self.x
+        y = self.menu.height*self.y
+        
+        bx = x - self.width*self.menu.width/2
+        by = y - self.height*self.menu.height/2
+        
+        
+        y = y-txt.get_height()/2
+        
+        if self.align == "right":
+            x -= txt.get_width()
+        
+        elif self.align == "center":
+            x -= txt.get_width()/2
+        
+        pygame.draw.rect(surf, self.color, (bx, by, self.width*self.menu.width, self.height*self.menu.height), width = 2)
+        surf.blit(txt, [x, y])
+    
+    def handle_event(self, event):
+        if event.key == pygame.K_BACKSPACE:
+                self.set_txt(self.txt[:-1])
+            
+        elif event.unicode in self.VALID:
+            self.set_txt(self.txt + event.unicode)
+    
+    def set_txt(self, txt):
+        if len(txt) > self.maxlen:
+            txt = txt[:10]
+        self.txt = txt
+    
+    
