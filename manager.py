@@ -323,7 +323,8 @@ class Manager:
         if not os.path.exists("config.json"):
             print("#"*80)
             print("You are missing config.json")
-            print("please contact the developer if you have no idea what this is about!")
+            print("Please contact the developers")
+            print("if you have no idea what this is about !")
             print("#"*80)
             exit()
         with open("config.json", encoding="utf-8") as conffile:
