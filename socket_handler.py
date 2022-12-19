@@ -11,6 +11,8 @@ class SocketHandler:
     """Class handling communication between the two devices"""
     
     SEND_INTERVAL = 0.1  # interval in seconds between send loops
+    LAN = 0
+    WAN = 1
     
     def __init__(self, manager):
         """Initializes a SocketHandler instance
@@ -25,6 +27,7 @@ class SocketHandler:
         self.in_thread = None
         self.out_thread = None
         self.connect_s = None
+        self.type = None
     
     def reset(self):
         """Resets messages state"""
@@ -33,6 +36,7 @@ class SocketHandler:
         self._last_recv = -1
         self._latest = -1
         self._msg_id = 0
+        self.type = None
     
     def connect(self):
         """Connects to the match-making server and waits for opponent"""
@@ -99,17 +103,41 @@ class SocketHandler:
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         #self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
         self.sock.bind(self.local_addr)
-        self.sock.connect(self.pub_addr)
-        self.sock.settimeout(1)
+        self.sock.settimeout(0.1)
+
+        while self.running:
+            self.sock.sendto(b"handshake-priv|0", self.priv_addr)
+            self.sock.sendto(b"handshake-pub|0", self.pub_addr)
+            try:
+                data = self.sock.recv(2048)
+            except socket.timeout:
+                data = b""
+            
+            if data == b"handshake-priv|1":
+                self.sock.connect(self.priv_addr)
+                self.type = self.LAN
+                break
+            
+            elif data == b"handshake-pub|1":
+                self.sock.connect(self.pub_addr)
+                self.type = self.WAN
+                break
+                
+            elif data == b"handshake-priv|0":
+                self.sock.sendto(b"handshake-priv|1", self.priv_addr)
+                
+            elif data == b"handshake-pub|0":
+                self.sock.sendto(b"handshake-pub|1", self.pub_addr)
         
+        m = f"handshake-{['priv', 'pub'][self.type]}|1"
+        self._msgs[-1] = [m, False]
+        
+        self.sock.settimeout(1)
         self.in_thread = threading.Thread(target=self.listen_loop)
         self.out_thread = threading.Thread(target=self.send_loop)
         
         self.in_thread.start()
         self.out_thread.start()
-        
-        # To keep tunnel open
-        self.send(b"handshake")
         
         self.manager.on_connected()
 
@@ -138,6 +166,7 @@ class SocketHandler:
                 continue
             
             if data == "": continue
+            if data.startswith(b"handshake"): continue
             
             data = data.split(b"|", 2)
             type_, id_ = data[:2]
