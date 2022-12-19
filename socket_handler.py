@@ -5,8 +5,6 @@ import socket
 import threading
 import time
 
-from utils import fromBase, toBase
-
 class SocketHandler:
     """Class handling communication between the two devices"""
     
