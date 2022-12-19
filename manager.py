@@ -122,6 +122,9 @@ class Manager:
                 else:
                     self.gui.on_key_down(event)
             
+            elif event.type == pygame.VIDEORESIZE:
+                self.WIDTH, self.HEIGHT = event.w, event.h
+            
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 self.on_mouse_down(event)
             
@@ -178,7 +181,7 @@ class Manager:
             cur_time = time.time()
             rem = self.countdown_start+self.COUNTDOWN_DUR-cur_time
             
-            if cur_time-self.last_ping > 0.5:
+            if cur_time-self.last_ping > 0.1:
                 self.socket_handler.send(b"ping")  # keep tunnel open
                 self.last_ping = cur_time
                 

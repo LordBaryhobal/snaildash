@@ -92,7 +92,7 @@ class DisplayManager:
         mgr = self.manager
         stage = mgr.stage
         
-        w3, h3 = surf.get_width()/3, surf.get_height()/3
+        w3, h3 = mgr.WIDTH/3, mgr.HEIGHT/3
         
         tw = 2*w3/mgr.game.WIDTH
         th = 2*h3/mgr.game.HEIGHT
@@ -120,7 +120,7 @@ class DisplayManager:
             rem_sec = "Go" if rem_sec == 0 else str(rem_sec)
             font = FontManager.get("arial", 50, True, True)
             txt = font.render(rem_sec, True, self.CD_COLOR)
-            y0 = surf.get_height()/2-txt.get_height()/2
+            y0 = mgr.HEIGHT/2-txt.get_height()/2
             y1 = -txt.get_height()
             
             # Animation
@@ -129,7 +129,7 @@ class DisplayManager:
             r = r**2
             y = r*(y1-y0)+y0
 
-            surf.blit(txt, [surf.get_width()/2-txt.get_width()/2, y])
+            surf.blit(txt, [mgr.WIDTH/2-txt.get_width()/2, y])
         
         elif stage == Stage.IN_GAME:
             self.render_game(surf)
@@ -153,7 +153,8 @@ class DisplayManager:
             surf (pygame.Surface): window surface
         """
 
-        oy = 0.25*surf.get_height()
+        mgr = self.manager
+        oy = 0.25*mgr.HEIGHT
         for i, [x, y, v] in enumerate(self.main_menu_stars):
             pygame.draw.ellipse(surf, (150,150,150), [
                 x-15,
@@ -162,7 +163,7 @@ class DisplayManager:
                 4
             ])
             x -= v*20 + 15
-            x %= surf.get_width()
+            x %= mgr.WIDTH
             self.main_menu_stars[i][0] = x
         
         t = time.time()-self.manager.startup_time
@@ -171,7 +172,7 @@ class DisplayManager:
         f = 4 - abs(f-0.5)*8
         snail = self.snail[int(f)][self.manager.game.player.i]
         snail = pygame.transform.rotate(snail, -90)
-        w = surf.get_width()
+        w = mgr.WIDTH
         x = r*w
         dy = sin(10*pi*r)*20
         surf.blit(snail, [x, oy+dy-snail.get_height()/2])
@@ -186,14 +187,15 @@ class DisplayManager:
         """
         
         cur_time = self.manager.time()
-        game = self.manager.game
+        mgr = self.manager
+        game = mgr.game
         
-        ox, oy = surf.get_width()/2 - game.WIDTH/2*self.ts, surf.get_height()/2 - game.HEIGHT/2*self.ts
+        ox, oy = mgr.WIDTH/2 - game.WIDTH/2*self.ts, mgr.HEIGHT/2 - game.HEIGHT/2*self.ts
 
         # Stars
         for i, [x, y, f] in enumerate(self.stars):
             col = int(200*f)
-            pygame.draw.circle(surf, (col, col, col), [x*surf.get_width(), y*surf.get_height()], f*4)
+            pygame.draw.circle(surf, (col, col, col), [x*mgr.WIDTH, y*mgr.HEIGHT], f*4)
             x, y = x+self.star_vx*f, y+self.star_vy*f
             x %= 1
             y %= 1
@@ -243,11 +245,11 @@ class DisplayManager:
         # Time bar
         remaining = game.start_time+game.DURATION - cur_time
         if game.start_time == 0: remaining = game.DURATION
-        w3 = surf.get_width()/3
+        w3 = mgr.WIDTH/3
         w6 = w3/2
         W = 2*w3
         w = W * max(0, min(1, remaining/game.DURATION))
-        pygame.draw.rect(surf, (255,255,255), [w6, surf.get_height()-10, w, 10])
+        pygame.draw.rect(surf, (255,255,255), [w6, mgr.HEIGHT-10, w, 10])
         
         # Collision shockwave
         if game.collide_start != 0:
@@ -259,7 +261,7 @@ class DisplayManager:
         
         # Dash bar
         ds_texture = self.dashscore_textures[min(Player.MAX_DASHSCORE, game.player.dashscore)]
-        surf.blit(ds_texture, [ox-ds_texture.get_width()-self.ts, surf.get_height()/2-ds_texture.get_height()/2])
+        surf.blit(ds_texture, [ox-ds_texture.get_width()-self.ts, mgr.HEIGHT/2-ds_texture.get_height()/2])
     
     def render_breakdown_transition(self, surf):
         """Renders the transition between the game and breakdown phase
@@ -282,7 +284,7 @@ class DisplayManager:
         surf.blit(fade, [0,0])
         
         # Players animation
-        ox, oy = surf.get_width()/2 - game.WIDTH/2*self.ts, surf.get_height()/2 - game.HEIGHT/2*self.ts
+        ox, oy = mgr.WIDTH/2 - game.WIDTH/2*self.ts, mgr.HEIGHT/2 - game.HEIGHT/2*self.ts
         p1, p2 = game.players
         p1Ps = [ox + (p1.x+0.5)*self.ts, oy + (p1.y+0.5)*self.ts]
         p2Ps = [ox + (p2.x+0.5)*self.ts, oy + (p2.y+0.5)*self.ts]
@@ -333,7 +335,7 @@ class DisplayManager:
         pct_red = red/full*100
         pct_blue = blue/full*100
         
-        ox, oy = surf.get_width()/2 - game.WIDTH/2*self.ts, surf.get_height()/2 - game.HEIGHT/2*self.ts
+        ox, oy = mgr.WIDTH/2 - game.WIDTH/2*self.ts, mgr.HEIGHT/2 - game.HEIGHT/2*self.ts
         p1, p2 = [ox, oy], [ox + game.WIDTH*self.ts, oy]
         mx, my = (p1[0]+p2[0])/2, (p1[1]+p2[1])/2
         width = p2[0] - p1[0] - 2*self.ts - 40
@@ -399,7 +401,7 @@ class DisplayManager:
         pct_red = red/full*100
         pct_blue = blue/full*100
         
-        ox, oy = surf.get_width()/2 - game.WIDTH/2*self.ts, surf.get_height()/2 - game.HEIGHT/2*self.ts
+        ox, oy = mgr.WIDTH/2 - game.WIDTH/2*self.ts, mgr.HEIGHT/2 - game.HEIGHT/2*self.ts
         p1, p2 = [ox, oy], [ox + game.WIDTH*self.ts, oy]
         mx, my = (p1[0]+p2[0])/2, (p1[1]+p2[1])/2
         width = p2[0] - p1[0] - 2*self.ts - 40
@@ -450,7 +452,7 @@ class DisplayManager:
         xm = (x1+x2)/2
         
         ys = p1[1]+100
-        ye = surf.get_height()*6/7
+        ye = mgr.HEIGHT*6/7
         h = (ye-ys)/len(bonus_scores)
         
         font = FontManager.get("arial", 30)
