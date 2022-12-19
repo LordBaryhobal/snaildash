@@ -340,6 +340,8 @@ class Manager:
         return scores
     
     def load_config(self):
+        """Loads configuration file"""
+        
         if not os.path.exists("config.json"):
             print("#"*80)
             print("You are missing config.json")
@@ -351,6 +353,8 @@ class Manager:
             self.config = json.load(conffile)
     
     def send_score(self):
+        """Sends the local player's score to the server"""
+        
         data = {
             "name": self.username,
             "score": self.get_bonus_scores()[-1][self.game.player.i + 1]

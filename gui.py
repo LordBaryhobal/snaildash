@@ -339,6 +339,12 @@ class Input:
             
     
     def handle_event(self, event):
+        """Handles a pygame.KEYDOWN event
+
+        Args:
+            event (pygame.EVENT): the pygame event
+        """
+        
         if event.key == pygame.K_BACKSPACE:
                 self.set_txt(self.txt[:-1])
             
@@ -346,6 +352,12 @@ class Input:
             self.set_txt(self.txt + event.unicode)
     
     def set_txt(self, txt):
+        """Sets the current text
+
+        Args:
+            txt (str): new text
+        """
+        
         if len(txt) > self.maxlen:
             txt = txt[:10]
         self.txt = txt
