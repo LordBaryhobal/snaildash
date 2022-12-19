@@ -6,6 +6,7 @@ import os
 import requests
 import struct
 import time
+import webbrowser
 
 import pygame
 
@@ -141,6 +142,9 @@ class Manager:
                 if name == "main.play":
                     self.gui.set_menu("nameinput")
                     self.stage = Stage.NAMEINPUT
+                
+                elif name == "main.leaderboard":
+                    webbrowser.open(self.config["leaderboard"])
                 
                 elif name == "nameinput.connect":
                     self.username = self.gui.get_menu().components[1].txt

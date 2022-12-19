@@ -19,7 +19,15 @@
     {
         "type": "button",
         "x": 0.5,
-        "y": 0.6,
+        "y": 0.55,
+        "width": 0.25,
+        "txt": "Leaderboard",
+        "name": "main.leaderboard"
+    },
+    {
+        "type": "button",
+        "x": 0.5,
+        "y": 0.7,
         "width": 0.25,
         "txt": "Comment ça marche",
         "name": "main.tutorial"
@@ -27,7 +35,7 @@
     {
         "type": "button",
         "x": 0.5,
-        "y": 0.9,
+        "y": 0.85,
         "width": 0.25,
         "txt": "Crédits",
         "name": "main.credits"
