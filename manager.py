@@ -49,6 +49,14 @@ class Manager:
         self.startup_time = time.time()
         self.last_ping = 0
         self.win = pygame.display.set_mode([self.WIDTH, self.HEIGHT], pygame.RESIZABLE)#, pygame.FULLSCREEN)
+        self.start_menu_music()
+    
+    def start_menu_music(self):
+        """Starts the menu music"""
+        
+        pygame.mixer.music.load(os.path.join("assets", "musics", "menu.wav"))
+        pygame.mixer.music.set_volume(0.2)
+        pygame.mixer.music.play(-1)
     
     def is_host(self):
         """Returns whether this instance is the host or not
@@ -87,6 +95,7 @@ class Manager:
         self.gui.set_menu("main")
         self.gui.visible = True
         self.stage = Stage.MAIN_MENU
+        self.start_menu_music()
     
     def mainloop(self):
         """Main loop, calls logic and rendering related methods"""
@@ -174,6 +183,7 @@ class Manager:
                     
                     elif name == "breakdown.main":
                         self.socket_handler.quit()
+                        self.start_menu_music()
                 
                 elif name == "tutorial.prev":
                     self.tutorial.prev_slide()
@@ -191,7 +201,9 @@ class Manager:
                 
             if rem <= 0:
                 self.stage = Stage.IN_GAME
-                #pygame.mixer.music.play()
+                pygame.mixer.music.load(os.path.join("assets", "musics", "game.wav"))
+                pygame.mixer.music.set_volume(0.5)
+                pygame.mixer.music.play()
                 self.game.start_time = self.time()
                 self.game.start_turn()
 
@@ -307,6 +319,7 @@ class Manager:
         self.stage = Stage.COUNTDOWN
         self.time_origin = time.time()
         self.gui.visible = False
+        pygame.mixer.music.stop()
     
     def get_bonus_scores(self):
         """Returns a list of bonus scores for each player
