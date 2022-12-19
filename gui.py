@@ -3,6 +3,7 @@
 
 import json
 import os
+import time
 
 import pygame
 
@@ -332,6 +333,10 @@ class Input:
         
         pygame.draw.rect(surf, self.color, (bx, by, self.width*self.menu.width, self.height*self.menu.height), width = 2)
         surf.blit(txt, [x, y])
+        
+        if int(time.time()*2)%2 == 0:
+            pygame.draw.rect(surf, self.color, [x + txt.get_width(), y, 3, txt.get_height()])
+            
     
     def handle_event(self, event):
         if event.key == pygame.K_BACKSPACE:
