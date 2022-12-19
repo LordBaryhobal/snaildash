@@ -20,6 +20,47 @@
             "program": "${workspaceFolder}/main.py",
             "console": "integratedTerminal",
             "justMyCode": true
+        },
+        {
+            "name": "Python: profile main.py",
+            "type": "python",
+            "request": "launch",
+            "module": "cProfile",
+            "linux": {
+                "args": [
+                    "-o", "${input:profile_path_linux}", "${workspaceFolder}/main.py"
+                ]
+            },
+            "windows": {
+                "args": [
+                    "-o", "${input:profile_path_windows}", "${workspaceFolder}\\main.py"
+                ]
+            },
+            "osx": {
+                "args": [
+                    "-o", "${input:profile_path_osx}", "${workspaceFolder}/main.py"
+                ]
+            }
+        }
+    ],
+    "inputs": [
+        {
+            "id": "profile_path_linux",
+            "type": "promptString",
+            "description": "Output path",
+            "default": "/tmp/tmp.prof"
+        },
+        {
+            "id": "profile_path_windows",
+            "type": "promptString",
+            "description": "Output path",
+            "default": "%TEMP%\\tmp.prof"
+        },
+        {
+            "id": "profile_path_osx",
+            "type": "promptString",
+            "description": "Output path",
+            "default": "${env:TMPDIR}/tmp.prof"
         }
     ]
 }
