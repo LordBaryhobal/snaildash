@@ -21,7 +21,7 @@ from tutorial import Tutorial
 class Manager:
     """Main class managing the whole game process, menus and communication"""
     
-    WIDTH, HEIGHT = 800, 800 #1920, 1080
+    WIDTH, HEIGHT = 1920, 1080
     FPS = 30
     
     COUNTDOWN_DUR = 4  # Duration in seconds of the start countdown
@@ -48,7 +48,7 @@ class Manager:
         
         self.startup_time = time.time()
         self.last_ping = 0
-        self.win = pygame.display.set_mode([self.WIDTH, self.HEIGHT], pygame.RESIZABLE)#, pygame.FULLSCREEN)
+        self.win = pygame.display.set_mode([self.WIDTH, self.HEIGHT], pygame.FULLSCREEN)
         self.start_menu_music()
     
     def start_menu_music(self):
@@ -151,6 +151,9 @@ class Manager:
                 if name == "main.play":
                     self.gui.set_menu("nameinput")
                     self.stage = Stage.NAMEINPUT
+                
+                elif name == "main.quit":
+                    self.quit()
                 
                 elif name == "main.leaderboard":
                     webbrowser.open(self.config["leaderboard"])
