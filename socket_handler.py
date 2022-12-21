@@ -127,8 +127,9 @@ class SocketHandler:
             elif data == b"handshake-pub|0":
                 self.sock.sendto(b"handshake-pub|1", self.pub_addr)
         
-        m = f"handshake-{['priv', 'pub'][self.type]}|1"
-        self._msgs[-1] = [m, False]
+        if self.running:
+            m = f"handshake-{['priv', 'pub'][self.type]}|1"
+            self._msgs[-1] = [m, False]
         
         self.sock.settimeout(1)
         self.in_thread = threading.Thread(target=self.listen_loop)
