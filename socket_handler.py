@@ -73,7 +73,7 @@ class SocketHandler:
             else:
                 if data == b"ping": continue
                 
-                is_host, pub_ip, pub_port, priv_ip, priv_port = data.decode("utf-8").split("|")
+                is_host, pub_ip, pub_port, priv_ip, priv_port, self.manager.ousername = data.decode("utf-8").split("|", 5)
                 is_host, pub_port, priv_port = bool(int(is_host)), int(pub_port), int(priv_port)
                 
                 if is_host:
@@ -167,8 +167,8 @@ class SocketHandler:
             if data == "": continue
             if data.startswith(b"handshake"): continue
             
-            data = data.split(b"|", 3)
-            type_, id_, self.manager.ousername = data[:3]
+            data = data.split(b"|", 2)
+            type_, id_ = data[:2]
             id_ = int(id_.decode("utf-8"))
             
             # Message
