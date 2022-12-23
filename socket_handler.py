@@ -71,11 +71,13 @@ class SocketHandler:
                 continue
             
             else:
-                if data == b"ping": continue
+                if data.startswith(b"ping"): continue
                 
-                is_host, pub_ip, pub_port, priv_ip, priv_port, self.manager.ousername = data.decode("utf-8").split("|", 5)
-                is_host, pub_port, priv_port = bool(int(is_host)), int(pub_port), int(priv_port)
-                
+                is_host, is_lan, pub_ip, pub_port, priv_ip, priv_port, self.manager.ousername = data.decode("utf-8").split("|", 6)
+                is_host, is_lan, pub_port, priv_port = bool(int(is_host)), bool(int(is_lan)), int(pub_port), int(priv_port)
+
+                self.type = self.LAN if is_lan else self.WAN
+
                 if is_host:
                     self.manager.init_host()
                 else:
@@ -84,7 +86,12 @@ class SocketHandler:
                 self.pub_addr = (pub_ip, pub_port)
                 self.priv_addr = (priv_ip, priv_port)
                 
-                self.finalize_connection()
+                if self.type == self.WAN:
+                    self.finalize_wan_connection()
+                
+                else:
+                    self.finalize_lan_connection()
+                
                 connected = True
                 break
         
@@ -94,8 +101,8 @@ class SocketHandler:
         self.connect_s.close()
         self.connect_s = None
     
-    def finalize_connection(self):
-        """Establishes the connection with the opponent"""
+    def finalize_wan_connection(self):
+        """Establishes the connection with the opponent (WAN)"""
         
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -139,6 +146,34 @@ class SocketHandler:
         self.out_thread.start()
         
         self.manager.on_connected()
+    
+    def finalize_lan_connection(self):
+        """Establishes the connection with the opponent (LAN)"""
+        
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        #self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+        self.sock.bind(self.local_addr)
+        
+        if self.manager.is_host():
+            self.sock.listen(1)
+            conn, addr = self.sock.accept()
+            self.sock.close()
+            self.sock = conn
+        
+        else:
+            self.sock.connect(self.priv_addr)
+        
+        self.sock.settimeout(1)
+        
+        if self.type == self.WAN:
+            self.in_thread = threading.Thread(target=self.listen_loop_wan)
+        
+        else:
+            self.in_thread = threading.Thread(target=self.listen_loop_lan)
+        self.in_thread.start()
+        
+        self.manager.on_connected()
 
     def sock_send(self, msg):
         """Sends a message through the socket. If the socket is closed,
@@ -153,7 +188,7 @@ class SocketHandler:
             msg = msg.encode("utf-8")
         self.sock.sendall(msg)
 
-    def listen_loop(self):
+    def listen_loop_wan(self):
         """Listens for incoming messages asynchronously and responds accordingly.
         This method implements TCP features over UDP
         """
@@ -197,7 +232,18 @@ class SocketHandler:
             # Resend
             elif type_ == b"res":
                 self.sock_send(self._msgs[id_][0])
+    
+    def listen_loop_lan(self):
+        """Listens for incoming messages asynchronously over TCP."""
+        
+        while self.running:
+            try:
+                data = self.sock.recv(2048)
+            except:
+                continue
             
+            if data == "": continue
+            self.manager.on_receive(data)
 
     def send_loop(self):
         """Sends un-acknowledged messages asynchronously every SEND_INTERVAL seconds"""
@@ -218,11 +264,15 @@ class SocketHandler:
         """
         
         if self.running and self.sock:
-            m = f"msg|{self._msg_id}|"
-            m = m.encode("utf-8")+msg
-            self.sock.send(m)
-            self._msgs[self._msg_id] = [m, False]
-            self._msg_id += 1
+            if self.type == self.WAN:
+                m = f"msg|{self._msg_id}|"
+                m = m.encode("utf-8")+msg
+                self.sock.send(m)
+                self._msgs[self._msg_id] = [m, False]
+                self._msg_id += 1
+            
+            else:
+                self.sock_send(msg)
     
     def quit(self):
         """Closes the socket and stops the listening thread"""
