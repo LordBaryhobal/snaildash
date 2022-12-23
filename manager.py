@@ -45,6 +45,7 @@ class Manager:
         self.display_manager = DisplayManager(self)
         self._is_host = False
         self.load_config()
+        self.ousername = "player2"
         
         self.startup_time = time.time()
         self.last_ping = 0
@@ -159,8 +160,8 @@ class Manager:
                     webbrowser.open(self.config["leaderboard"])
                 
                 elif name == "nameinput.connect":
-                    self.username = self.gui.get_menu().components[1].txt
-                    if self.username == "":
+                    self.musername = self.gui.get_menu().components[1].txt
+                    if self.musername == "":
                         continue
                     self.socket_handler.connect()
                     self.gui.set_menu("waiting")
@@ -359,7 +360,7 @@ class Manager:
         """Sends the local player's score to the server"""
         
         data = {
-            "name": self.username,
+            "name": self.musername,
             "score": self.get_bonus_scores()[-1][self.game.player.i + 1]
         }
         requests.post(self.config["score_url"], data)

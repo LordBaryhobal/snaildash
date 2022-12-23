@@ -51,8 +51,8 @@ class SocketHandler:
             self.connect_s.settimeout(2)
 
             local_ip, local_port = self.connect_s.getsockname()
-            username = self.manager.username
-            msg = f"{local_ip}|{local_port}|{username}"
+            musername = self.manager.musername
+            msg = f"{local_ip}|{local_port}|{musername}"
             self.local_addr = (local_ip, local_port)
             self.connect_s.sendall(msg.encode("utf-8"))
             self.connect_thread = threading.Thread(target=self.wait_for_opponent)

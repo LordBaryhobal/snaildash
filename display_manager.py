@@ -262,7 +262,20 @@ class DisplayManager:
         # Dash bar
         ds_texture = self.dashscore_textures[min(Player.MAX_DASHSCORE, game.player.dashscore)]
         surf.blit(ds_texture, [ox-ds_texture.get_width()-self.ts, mgr.HEIGHT/2-ds_texture.get_height()/2])
-    
+
+        # player names
+        font = FontManager.get("arial", 50, True, True)
+        musername = font.render(mgr.musername, True, game.player.COLORS[game.player.i])
+        ousername = font.render(mgr.ousername, True, game.player.COLORS[(game.player.i + 1)%2])
+        
+        bluepos = [mgr.WIDTH/3-ousername.get_width()/2, oy/2 - ousername.get_height()/2]
+        redpos = [mgr.WIDTH*2/3-musername.get_width()/2, oy/2 - musername.get_height()/2]
+        
+        mpos, opos = (redpos, bluepos) if game.player.i == 1 else (bluepos, redpos)
+        
+        surf.blit(musername, mpos)
+        surf.blit(ousername, opos)
+        
     def render_breakdown_transition(self, surf):
         """Renders the transition between the game and breakdown phase
 
