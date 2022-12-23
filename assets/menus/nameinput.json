@@ -5,7 +5,7 @@
         "x": 0.5,
         "y": 0.4,
         "width": 0.3,
-        "txt": "Type username:",
+        "txt": "Votre pseudo:",
         "size": 40
     },
     {
@@ -21,7 +21,7 @@
         "x": 0.5,
         "y": 0.75,
         "width": 0.25,
-        "txt": "Connect",
+        "txt": "Se connecter",
         "name": "nameinput.connect"
     }
 ]
