@@ -128,6 +128,9 @@ class Manager:
                 if event.key == pygame.K_0 and event.mod & pygame.KMOD_CTRL:
                     self.quit(True)
                 
+                if event.key == pygame.K_RETURN and self.stage == Stage.NAMEINPUT:
+                    pygame.event.post(pygame.event.Event(pygame.USEREVENT + 1, name="nameinput.connect"))
+                
                 if self.stage == Stage.IN_GAME:
                     self.game.handle_key(event)
                 else:
