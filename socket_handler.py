@@ -11,6 +11,7 @@ class SocketHandler:
     SEND_INTERVAL = 0.1  # interval in seconds between send loops
     LAN = 0
     WAN = 1
+    MSG_SEP = b"<->"
     
     def __init__(self, manager):
         """Initializes a SocketHandler instance
@@ -186,6 +187,8 @@ class SocketHandler:
         if not self.running or self.sock is None: return
         if isinstance(msg, str):
             msg = msg.encode("utf-8")
+        
+        msg += self.MSG_SEP
         self.sock.sendall(msg)
 
     def listen_loop_wan(self):
@@ -199,39 +202,42 @@ class SocketHandler:
             except:
                 continue
             
-            if data == "": continue
-            if data.startswith(b"handshake"): continue
-            
-            data = data.split(b"|", 2)
-            type_, id_ = data[:2]
-            id_ = int(id_.decode("utf-8"))
-            
-            # Message
-            if type_ == b"msg":
-                if id_ > self._last_recv+1:
-                    self._latest = max(self._latest, id_)
-                    self.sock_send(f"res|{self._last_recv+1}")
+            msgs = data.split(self.MSG_SEP)
+
+            for data in msgs:
+                if data == "": continue
+                if data.startswith(b"handshake"): continue
                 
-                elif id_ <= self._last_recv:
-                    self.sock_send(f"ack|{id_}")
+                data = data.split(b"|", 2)
+                type_, id_ = data[:2]
+                id_ = int(id_.decode("utf-8"))
+                
+                # Message
+                if type_ == b"msg":
+                    if id_ > self._last_recv+1:
+                        self._latest = max(self._latest, id_)
+                        self.sock_send(f"res|{self._last_recv+1}")
                     
-                else:
-                    self.manager.on_receive(data[2])
-                    if id_ < self._latest:
-                        self.sock_send(f"res|{id_+1}")
-                    
+                    elif id_ <= self._last_recv:
+                        self.sock_send(f"ack|{id_}")
+                        
                     else:
-                        self._latest = id_
-                    
-                    self._last_recv = id_
-            
-            # Acknowledge
-            elif type_ == b"ack":
-                self._msgs[id_][1] = True
-            
-            # Resend
-            elif type_ == b"res":
-                self.sock_send(self._msgs[id_][0])
+                        self.manager.on_receive(data[2])
+                        if id_ < self._latest:
+                            self.sock_send(f"res|{id_+1}")
+                        
+                        else:
+                            self._latest = id_
+                        
+                        self._last_recv = id_
+                
+                # Acknowledge
+                elif type_ == b"ack":
+                    self._msgs[id_][1] = True
+                
+                # Resend
+                elif type_ == b"res":
+                    self.sock_send(self._msgs[id_][0])
     
     def listen_loop_lan(self):
         """Listens for incoming messages asynchronously over TCP."""
@@ -242,8 +248,11 @@ class SocketHandler:
             except:
                 continue
             
-            if data == "": continue
-            self.manager.on_receive(data)
+            msgs = data.split(self.MSG_SEP)
+
+            for data in msgs:
+                if data == "": continue
+                self.manager.on_receive(data)
 
     def send_loop(self):
         """Sends un-acknowledged messages asynchronously every SEND_INTERVAL seconds"""
@@ -263,16 +272,13 @@ class SocketHandler:
             msg (bytes): data to send
         """
         
-        if self.running and self.sock:
-            if self.type == self.WAN:
-                m = f"msg|{self._msg_id}|"
-                m = m.encode("utf-8")+msg
-                self.sock.send(m)
-                self._msgs[self._msg_id] = [m, False]
-                self._msg_id += 1
-            
-            else:
-                self.sock_send(msg)
+        if self.type == self.WAN:
+            m = f"msg|{self._msg_id}|"
+            msg = m.encode("utf-8")+msg
+            self._msgs[self._msg_id] = [msg, False]
+            self._msg_id += 1
+        
+        self.sock_send(msg)
     
     def quit(self):
         """Closes the socket and stops the listening thread"""
