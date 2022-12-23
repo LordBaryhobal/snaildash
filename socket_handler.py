@@ -167,8 +167,8 @@ class SocketHandler:
             if data == "": continue
             if data.startswith(b"handshake"): continue
             
-            data = data.split(b"|", 2)
-            type_, id_ = data[:2]
+            data = data.split(b"|", 3)
+            type_, id_, self.manager.ousername = data[:3]
             id_ = int(id_.decode("utf-8"))
             
             # Message
