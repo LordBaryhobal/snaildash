@@ -227,6 +227,7 @@ class Manager:
             if rem <= 0:
                 self.stage = Stage.BREAKDOWN_BAR
                 self.breakdown_bar_start = self.time()
+                self.socket_handler.quit()
         
         elif self.stage == Stage.BREAKDOWN_BAR:
             rem = self.breakdown_bar_start+self.BREAKDOWN_BAR_DUR-self.time()
